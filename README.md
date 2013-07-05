@@ -2,8 +2,10 @@
 
 ## SLIME 実行時の process およびバッファ
 
-* SLIME connection  (slime-connection)の返り値
-* SLIME process (slime-process) の返り値
++ SLIME connection  (slime-connection)の返り値
++ SLIME process (slime-process) の返り値
+
+Emacs のスクラッチバッファで確認できる。
 
     (slime-connection)
     => #<process SLIME Lisp>
