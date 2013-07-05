@@ -38,6 +38,7 @@ Emacs のスクラッチバッファで確認できる。
 #### connection-local 変数
 
 connection 毎に異なる値を持てる、 connection-local 変数が定義されている。実体は、 suffix として ":connlocal" の付いたバッファローカル変数。slime-def-connection-var マクロで定義されている。
+
     (pp (loop for (name . value) in
        (buffer-local-variables (get-buffer " *cl-connection*"))
       if (string-match ".*:connlocal" (symbol-name name))
