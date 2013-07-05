@@ -18,6 +18,7 @@ Emacs のスクラッチバッファで確認できる。
 
 実体はネットワーク接続である。Elisp のプロセス関連関数 #'process-contact で詳細情報を得ることができる。
 
+    ;; local
     (pp (process-contact (slime-connection) t))
     =>
     (:name "SLIME Lisp" :buffer #<buffer  *cl-connection*>
@@ -25,6 +26,23 @@ Emacs のスクラッチバッファで確認できる。
     :remote [127 0 0 1 49178]
     :local  [127 0 0 1 49179]
     :filter slime-net-filter :sentinel slime-net-sentinel)
+
+    ;; remote
+    ;; xxxx は ssh tunnering に使用しているポート
+    (:name "SLIME Lisp" :buffer #<buffer  *cl-connection*>
+    :host "127.0.0.1" :service xxxx :nowait nil
+    :remote [127 0 0 1 xxxx]
+    :local [127 0 0 1 49188]
+    :filter slime-net-filter :sentinel slime-net-sentinel)
+
+#### connection-local 変数
+
+connection 毎に異なる値を持てる、 connection-local 変数が定義されている。実体は、 suffix として ":connlocal" の付いたバッファローカル変数。slime-def-connection-var マクロで定義されている。
+    (pp (loop for (name . value) in
+       (buffer-local-variables (get-buffer " *cl-connection*"))
+      if (string-match ".*:connlocal" (symbol-name name))
+      collect (cons name value)))
+    =>
     
 ## SLIME の重要な関数 (elisp)
 
