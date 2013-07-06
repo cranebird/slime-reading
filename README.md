@@ -107,4 +107,4 @@ slime-prin1-to-string で header と payload を作成する。
 
 ## 例: C-c C-m 押下時のシーケンス図
 
-![seq](./seq-C-c-C-m.png)
+![seq](seq-C-c-C-m.png)
