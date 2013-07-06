@@ -2,8 +2,9 @@
 
 ## SLIME 実行時の process およびバッファ
 
-+ SLIME connection  (slime-connection)の返り値
-+ SLIME process (slime-process) の返り値
+- SLIME connection  (slime-connection) の返り値
+- SLIME process (slime-process) の返り値
+- \*slime-events\* バッファ
 
 Emacs のスクラッチバッファで確認できる。
 
@@ -16,7 +17,7 @@ Emacs のスクラッチバッファで確認できる。
 
 ### SLIME connection
 
-実体はネットワーク接続である。Elisp のプロセス関連関数 #'process-contact で詳細情報を得ることができる。
+実体はネットワーク接続。Elisp のプロセス関連関数 #'process-contact で詳細情報が得られる。
 
     ;; local
     (pp (process-contact (slime-connection) t))
@@ -82,6 +83,14 @@ connection 毎に異なる値を持つ connection-local な変数が使われる
 - slime-continuation-counter
 - slime-channels
 - slime-channels-counter
+
+### SLIME process
+
+### \*slime-events\* バッファ
+
+ログ。
+変数 slime-log-events が t の場合にこのバッファにイベントが出力される。
+ただし、イベントは pretty print され、全てが出力されない場合がある。
 
 ## SLIME の重要な関数 (elisp)
 
