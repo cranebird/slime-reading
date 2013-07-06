@@ -1,4 +1,9 @@
-# SLIME Code Reading
+# コンポーネント
+
+FIXME
+![components](components.png)
+
+# Emacs 側
 
 ## SLIME 実行時の process およびバッファ
 
@@ -46,9 +51,9 @@ SLIME connection に紐づいたバッファ。バッファ名は先頭にスペ
 process filter.
 メッセージを処理し、 event dispatcher に渡す。
 
-- *cl-connection* バッファにメッセージを出力する
-
-
+- \*cl-connection\* バッファに受けとったメッセージを出力する。
+- メッセージを全て受けとった場合、メッセージを read する。
+- event 
 
 #### process sentinel
 
@@ -86,6 +91,8 @@ connection 毎に異なる値を持つ connection-local な変数が使われる
 
 ### SLIME process
 
+
+
 ### \*slime-events\* バッファ
 
 ログ。
@@ -102,6 +109,10 @@ slime-net-send
 
 slime-prin1-to-string で header と payload を作成する。
 
+### slime-net-read 関数
+
+パケットを read し、 S-式を返す。その後、読んだ部分のバッファをクリアする。
+
 ### slime-dispatch-event 関数
 
 (:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
@@ -109,11 +120,40 @@ slime-prin1-to-string で header と payload を作成する。
 
 ### slime-rex マクロ
 
+## RPC protocol
+
+### パケット
+
+16進数6桁のS-式の長さ部分とS-式本体からなる。slime-net-send 関数が生成する。
+
+    ;; 例
+    00004c(:emacs-rex (swank:listener-eval \"9\n\")
+    \"COMMON-LISP-USER\" :repl-thread 120)\n
+
 ## イベント
 
-先頭がキーワードであるリスト。キーワード名が ":emacs-" で始まるイベントは、Emacs から生成されたもの。
-
+先頭がキーワードであるリスト。キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
 
 ## 例: C-c C-m 押下時のシーケンス図
 
 ![seq](seq-C-c-C-m.png)
+
+# Swank 側
+
+## パッケージ
+
+- \:swank
+- \:swank-io-package
+- \:swank-match
+- \:swank-rpc
+- \:swank-backend
+
+## connection
+変数 \*emacs-connection\* が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 multithreaded-connection。
+
+    SWANK> (multithreaded-connection-p *emacs-connection*)
+    T
+    SWANK> (mconn.socket-io *emacs-connection*)
+    #<SB-SYS:FD-STREAM for "socket 127.0.0.1:62279, peer: 127.0.0.1:62280" {100472C203}>
+    SWANK> 
+
