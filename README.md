@@ -105,3 +105,6 @@ slime-prin1-to-string で header と payload を作成する。
 先頭がキーワードであるリスト。キーワード名が ":emacs-" で始まるイベントは、Emacs から生成されたもの。
 
 
+## 例: C-c C-m 押下時のシーケンス図
+
+![seq](./seq-C-c-C-m.png)
