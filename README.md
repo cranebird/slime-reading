@@ -23,28 +23,66 @@ Emacs のスクラッチバッファで確認できる。
     =>
     (:name "SLIME Lisp" :buffer #<buffer  *cl-connection*>
     :host "127.0.0.1" :service 49178 :nowait nil
-    :remote [127 0 0 1 49178]
-    :local  [127 0 0 1 49179]
+    :remote [127 0 0 1 49178] :local  [127 0 0 1 49179]
     :filter slime-net-filter :sentinel slime-net-sentinel)
 
     ;; remote
     ;; xxxx は ssh tunnering に使用しているポート
     (:name "SLIME Lisp" :buffer #<buffer  *cl-connection*>
     :host "127.0.0.1" :service xxxx :nowait nil
-    :remote [127 0 0 1 xxxx]
-    :local [127 0 0 1 49188]
+    :remote [127 0 0 1 xxxx] :local [127 0 0 1 49188]
     :filter slime-net-filter :sentinel slime-net-sentinel)
+
+#### buffer *cl-connection*
+
+SLIME connection に紐づいたバッファ。バッファ名は先頭にスペースあり。
+
+    (process-buffer (slime-connection))
+    => #<buffer  *cl-connection*>
+
+#### slime-net-filter
+
+process filter.
+メッセージを処理し、 event dispatcher に渡す。
+
+- *cl-connection* バッファにメッセージを出力する
+
+
+
+#### process sentinel
+
+slime-net-sentinel.
+"Lisp connection closed unexpectedly: %s " をメッセージに出力し、後始末をする。
 
 #### connection-local 変数
 
-connection 毎に異なる値を持てる、 connection-local 変数が定義されている。実体は、 suffix として ":connlocal" の付いたバッファローカル変数。slime-def-connection-var マクロで定義されている。
+connection 毎に異なる値を持つ connection-local な変数が使われる。実体は、suffix が ":connlocal" のバッファローカル変数。slime-def-connection-var マクロで定義される。
 
     (pp (loop for (name . value) in
        (buffer-local-variables (get-buffer " *cl-connection*"))
       if (string-match ".*:connlocal" (symbol-name name))
       collect (cons name value)))
     =>
-    
+
+- slime-connection-number
+- slime-lisp-features
+- slime-lisp-modules
+- slime-pid
+- slime-lisp-implementation-type
+- slime-lisp-implementation-version
+- slime-lisp-implementation-name
+- slime-lisp-implementation-program
+- slime-connection-name
+- slime-inferior-process
+- slime-communication-style
+- slime-machine-instance
+- slime-connection-coding-systems
+
+- slime-rex-continuations
+- slime-continuation-counter
+- slime-channels
+- slime-channels-counter
+
 ## SLIME の重要な関数 (elisp)
 
 ### slime-send 関数
