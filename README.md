@@ -242,12 +242,6 @@ Emacs の add-hook, run-hook 相当。
 ### read-message 関数、read-form 関数、read-packet 関数、parse-header 関数
 
 
-
-
-
-
-
-
 # SLIME の起動
 
 # SWANK サーバの起動 
@@ -255,6 +249,9 @@ Emacs の add-hook, run-hook 相当。
 - swank-loader.lisp を load する。
 - swank-loader:init に必要なパラメータを渡す。
 - swank:create-server を実行する。
+- sb-bsd-sockets:inet-socket を生成する。
+
+- definterface で定義される preferred-communication-style によって、デフォルトの \*communication-style\* が決定される。 :sb-thread が \*features\* にあれば、 :spawn となる。
 
 # ./contrib/swank-media
 
