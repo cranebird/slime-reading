@@ -246,6 +246,8 @@ Emacs の add-hook, run-hook 相当。
 
 # SWANK サーバの起動 
 
+![sequence diagram slime](seq-swank-boot.png)
+
 - swank-loader.lisp を load する。
 - swank-loader:init に必要なパラメータを渡す。
 - swank:create-server を実行する。
