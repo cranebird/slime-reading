@@ -1,7 +1,8 @@
 # コンポーネント
 
 FIXME
-![components](components.png)
+![components diagram slime](comp-slime.png)
+![components diagram swank](comp-swank.png)
 
 # Emacs 側
 
@@ -98,7 +99,7 @@ connection 毎に異なる値を持つ connection-local な変数が使われる
 変数 slime-log-events が t の場合にこのバッファにイベントがログとして出力される。
 ただし、イベントは pretty print され、全てが出力されない場合がある。
 
-## SLIME の重要な関数 (elisp)
+## slime の重要な関数、マクロ (elisp)
 
 ### slime-send 関数
 
@@ -155,9 +156,44 @@ slime-prin1-to-string で header と payload を作成する。
     T
     SWANK> (mconn.socket-io *emacs-connection*)
     #<SB-SYS:FD-STREAM for "socket 127.0.0.1:62279, peer: 127.0.0.1:62280" {100472C203}>
-    SWANK> 
 
-## definterface
+## Threads
+
+変数 \*thread-list\* で管理される。
+    SWANK> (list-threads )
+    ((:ID :NAME :STATUS)
+     (4 "repl-thread" "Running")
+     (5 "auto-flush-thread" "Running")
+     (6 "swank-indentation-cache-thread" "Running")
+     (7 "reader-thread" "Running")
+     (8 "control-thread" "Running")
+     (9 "Swank xxxx" "Running")
+     (10 "Swank Sentinel" "Running")
+     (11 "main thread" "Running"))
+
+
+- repl-thread
+
+- auto-flush-thread
+
+- swank-indentation-cache-thread
+
+- reader-thread
+
+- control-thread
+
+send-to-emacs での送信先。
+
+- Swank port-number
+
+- Swank Sentinel
+
+- main thread
+
+
+## インターフェース
+
+swank サーバのインターフェースはマクロ definterface で定義される。定義されたインターフェースはパラメータ swank-backend\:\:\*interfaces-functions\* で管理される。インターフェースは defimplementation で実装する。全てのインターフェースが実装される必要はなく、未実装のインターフェースは、パラメータ \*unimplemented-interfaces\* で管理され、起動時に警告される(warn-unimplemented-interfaces 関数)。
 
 ### 全インターフェース
 
@@ -182,6 +218,36 @@ slime-prin1-to-string で header と payload を作成する。
 |Weak datastructures | MAKE-WEAK-KEY-HASH-TABLE MAKE-WEAK-VALUE-HASH-TABLE HASH-TABLE-WEAKNESS|
 |Character names | CHARACTER-COMPLETION-SET SAVE-IMAGE BACKGROUND-SAVE-IMAGE|
 
+## swank の重要な関数、マクロ、構造体 (Common Lisp)
+
+### connection 構造体
+
+Emacs と Lisp のネットワーク接続を表現する。
+
+
+### defslimefun マクロ
+
+Emacs が RPC で呼び出せる関数を定義する。
+
+### add-hook マクロ、 run-hook 関数
+
+Emacs の add-hook, run-hook 相当。
+
+### destructure-case マクロ
+
+パターンマッチ。
+
+### decode-message 関数、encode-message 関数
+
+### read-message 関数、read-form 関数、read-packet 関数、parse-header 関数
+
+
+
+
+
+
+
+
 # SLIME の起動
 
 # SWANK サーバの起動 
@@ -189,4 +255,7 @@ slime-prin1-to-string で header と payload を作成する。
 - swank-loader.lisp を load する。
 - swank-loader:init に必要なパラメータを渡す。
 - swank:create-server を実行する。
+
+# ./contrib/swank-media
+
 
