@@ -160,8 +160,8 @@ slime-prin1-to-string で header と payload を作成する。
 ## Threads
 
 変数 \*thread-list\* で管理される。
-    SWANK> (list-threads )
-    ((:ID :NAME :STATUS)
+     SWANK> (list-threads )
+     ((:ID :NAME :STATUS)
      (4 "repl-thread" "Running")
      (5 "auto-flush-thread" "Running")
      (6 "swank-indentation-cache-thread" "Running")
