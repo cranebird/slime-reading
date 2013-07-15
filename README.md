@@ -252,11 +252,18 @@ Emacs の add-hook, run-hook 相当。
 - swank-loader.lisp を `load` する。
 - `swank-loader:init` 関数に必要なパラメータを渡す。
 - `swank:create-server` 関数を実行する。
--- `swank:setup-server` 関数を実行する。
---- `init-log-output` 関数を実行する。
---- `sb-bsd-sockets:inet-socket` 関数を実行し、ソケット生成する。
-`definterface` で定義される `preferred-communication-style` によって、デフォルトの `*communication-style*` を決定する。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
---- `announce-fn` を funcall する。
+    - `swank:setup-server` 関数を実行する。
+        - `init-log-output` 関数を実行する。
+        - `sb-bsd-sockets:inet-socket` 関数を実行し、ソケット生成する。
+        - `announce-fn` を `funcall` する。
+        - `initialize-multiprocessing` 関数を実行する。
+            - `start-sentinel` を実行する。
+            - `spwan` を実行する。
+            
+
+
+デフォルトの `*communication-style*` は、`definterface` で定義される `preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+
 
 # ./contrib/swank-media
 
