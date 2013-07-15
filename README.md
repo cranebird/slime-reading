@@ -23,7 +23,7 @@ Emacs のスクラッチバッファで確認できる。
 
 ### SLIME connection
 
-実体はネットワーク接続。Elisp のプロセス関連関数 `#'process-contact` で詳細情報が得られる。
+実体はネットワーク接続。Elisp のプロセス関連関数 `process-contact` で詳細情報が得られる。
 
     ;; local
     (pp (process-contact (slime-connection) t))
@@ -124,7 +124,7 @@ slime-net-send
 
 ### パケット
 
-16進数6桁のS-式の長さ部分とS-式本体からなる。slime-net-send 関数が生成する。
+16進数6桁のS-式の長さ部分とS-式本体からなる。`slime-net-send` 関数が生成する。
 
     ;; 例
     00004c(:emacs-rex (swank:listener-eval \"9\n\")
@@ -150,7 +150,7 @@ slime-net-send
 
 ## connection
 
-変数 \*emacs-connection\* が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 multithreaded-connection。
+変数 `*emacs-connection*` が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。
 
     SWANK> (multithreaded-connection-p *emacs-connection*)
     T
@@ -249,12 +249,14 @@ Emacs の add-hook, run-hook 相当。
 
 ![sequence diagram slime](seq-swank-boot.png)
 
-- swank-loader.lisp を load する。
-- swank-loader:init に必要なパラメータを渡す。
-- swank:create-server を実行する。
-- sb-bsd-sockets:inet-socket を生成する。
-
-- definterface で定義される preferred-communication-style によって、デフォルトの \*communication-style\* が決定される。 :sb-thread が \*features\* にあれば、 :spawn となる。
+- swank-loader.lisp を `load` する。
+- `swank-loader:init` 関数に必要なパラメータを渡す。
+- `swank:create-server` 関数を実行する。
+-- `swank:setup-server` 関数を実行する。
+--- `init-log-output` 関数を実行する。
+--- `sb-bsd-sockets:inet-socket` 関数を実行し、ソケット生成する。
+`definterface` で定義される `preferred-communication-style` によって、デフォルトの `*communication-style*` を決定する。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+--- `announce-fn` を funcall する。
 
 # ./contrib/swank-media
 
