@@ -8,9 +8,9 @@ FIXME
 
 ## SLIME 実行時の process およびバッファ
 
-- SLIME connection  (slime-connection) の返り値
-- SLIME process (slime-process) の返り値
-- \*slime-events\* バッファ
+- SLIME connection  (`slime-connection` 関数 の返り値)
+- SLIME process (`slime-process` 関数の返り値
+- `*slime-events*` バッファ
 
 Emacs のスクラッチバッファで確認できる。
 
@@ -23,7 +23,7 @@ Emacs のスクラッチバッファで確認できる。
 
 ### SLIME connection
 
-実体はネットワーク接続。Elisp のプロセス関連関数 #'process-contact で詳細情報が得られる。
+実体はネットワーク接続。Elisp のプロセス関連関数 `#'process-contact` で詳細情報が得られる。
 
     ;; local
     (pp (process-contact (slime-connection) t))
@@ -52,13 +52,13 @@ SLIME connection に紐づいたバッファ。バッファ名は先頭にスペ
 process filter.
 メッセージを処理し、 event dispatcher に渡す。
 
-- \*cl-connection\* バッファに受けとったメッセージを出力する。
+- `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
 - event 
 
 #### process sentinel
 
-slime-net-sentinel.
+`slime-net-sentinel`.
 "Lisp connection closed unexpectedly: %s " をメッセージに出力し、後始末をする。
 
 #### connection-local 変数
@@ -96,7 +96,7 @@ connection 毎に異なる値を持つ connection-local な変数が使われる
 
 ### \*slime-events\* バッファ
 
-変数 slime-log-events が t の場合にこのバッファにイベントがログとして出力される。
+変数 `slime-log-events` が `t` の場合にこのバッファにイベントがログとして出力される。
 ただし、イベントは pretty print され、全てが出力されない場合がある。
 
 ## slime の重要な関数、マクロ (elisp)
@@ -107,7 +107,7 @@ slime-net-send
 
 ### slime-net-send 関数
 
-slime-prin1-to-string で header と payload を作成する。
+`slime-prin1-to-string` 関数で header と payload を作成する。
 
 ### slime-net-read 関数
 
@@ -159,7 +159,7 @@ slime-prin1-to-string で header と payload を作成する。
 
 ## Threads
 
-変数 \*thread-list\* で管理される。
+変数 `*thread-list*` で管理される。
 
      SWANK> (list-threads )
      ((:ID :NAME :STATUS)
@@ -194,7 +194,7 @@ send-to-emacs での送信先。
 
 ## インターフェース
 
-swank サーバのインターフェースはマクロ definterface で定義される。定義されたインターフェースはパラメータ swank-backend\:\:\*interfaces-functions\* で管理される。インターフェースは defimplementation で実装する。全てのインターフェースが実装される必要はなく、未実装のインターフェースは、パラメータ \*unimplemented-interfaces\* で管理され、起動時に警告される(warn-unimplemented-interfaces 関数)。
+swank サーバのインターフェースはマクロ `definterface` で定義される。定義されたインターフェースはパラメータ `swank-backend::*interfaces-functions*` で管理される。インターフェースは `defimplementation` で実装する。全てのインターフェースが実装される必要はなく、未実装のインターフェースは、パラメータ `*unimplemented-interfaces*` で管理され、起動時に警告される(`warn-unimplemented-interfaces` 関数)。
 
 ### 全インターフェース
 
