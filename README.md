@@ -176,8 +176,8 @@ slime-net-send
 
 sbcl 環境では、 `sb-thread` パッケージの関数を用いて実装されている。
 
-| Interface | 説明 | SBCL 実装 |
-|---------|----------|
+|Interface | 説明 | SBCL 実装 |
+|---------|--------|----------|
 | initialize-multiprocessing (continuation) | マルチプロセッシングを初期化し、引数 continuation を実行する。| デフォルト |
 | spawn (fn \&key name) | FN を call するスレッドを生成する。 | `sb-thread:make-thread` |
 | thread-id (thread) | THREAD を識別する Emacs-parsable なオブジェクトを返す。| 実装 |
