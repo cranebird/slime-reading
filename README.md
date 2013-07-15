@@ -40,30 +40,31 @@ Emacs のスクラッチバッファで確認できる。
     :remote [127 0 0 1 xxxx] :local [127 0 0 1 49188]
     :filter slime-net-filter :sentinel slime-net-sentinel)
 
-#### buffer \*cl-connection\*
+#### buffer `*cl-connection*`
 
 SLIME connection に紐づいたバッファ。バッファ名は先頭にスペースあり。
 
     (process-buffer (slime-connection))
     => #<buffer  *cl-connection*>
 
-#### slime-net-filter
+#### Process filter `slime-net-filter`
 
-process filter.
-メッセージを処理し、 event dispatcher に渡す。
+TODO
+
+process filter.メッセージを処理し、 event dispatcher に渡す。
 
 - `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
 - event 
 
-#### process sentinel
+#### process sentinel `slime-net-sentinel`
 
-`slime-net-sentinel`.
 "Lisp connection closed unexpectedly: %s " をメッセージに出力し、後始末をする。
 
 #### connection-local 変数
 
-connection 毎に異なる値を持つ connection-local な変数が使われる。実体は、suffix が ":connlocal" のバッファローカル変数。slime-def-connection-var マクロで定義される。
+実体は、suffix が ":connlocal" のバッファローカル変数で、
+connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで定義される。
 
     (pp (loop for (name . value) in
        (buffer-local-variables (get-buffer " *cl-connection*"))
@@ -92,33 +93,38 @@ connection 毎に異なる値を持つ connection-local な変数が使われる
 
 ### SLIME process
 
+TODO
 
-
-### \*slime-events\* バッファ
+### `*slime-events*` バッファ
 
 変数 `slime-log-events` が `t` の場合にこのバッファにイベントがログとして出力される。
 ただし、イベントは pretty print され、全てが出力されない場合がある。
 
 ## slime の重要な関数、マクロ (elisp)
 
-### slime-send 関数
+### `slime-send` 関数
 
-slime-net-send
+`slime-net-send` を実行する。
 
-### slime-net-send 関数
+### `slime-net-send` 関数
 
+TODO
 `slime-prin1-to-string` 関数で header と payload を作成する。
 
-### slime-net-read 関数
+### `slime-net-read` 関数
 
 パケットを read し、 S-式を返す。その後、読んだ部分をバッファから削除する。
 
-### slime-dispatch-event 関数
+### `slime-dispatch-event` 関数
+
+TODO
 
 (:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
 そのうえで、 id と continuation の組を connection-local variable として保存する。
 
-### slime-rex マクロ
+### `slime-rex` マクロ
+
+TODO
 
 ## RPC protocol
 
@@ -198,12 +204,9 @@ sbcl 環境では、 `sb-thread` パッケージの関数を用いて実装さ�
 | set-default-initial-binding | ? | デフォルト |
 | wait-for-input (streams \&optional timeout) | ? | 実装 |
 
-#### `spawn` (I/F)
-
-関数を引数とし、その関数を実行するスレッドを作成する。sbcl の multithread 環境では、`sb-thread:make-thread` を実行する。
-
-
 ### スレッドの役割
+
+TODO
 
 - repl-thread
 - auto-flush-thread
@@ -257,22 +260,28 @@ Emacs が RPC で呼び出せる関数を定義する。
 
 ### add-hook マクロ、 run-hook 関数
 
-Emacs の add-hook, run-hook 相当。
+Emacs の `add-hook`, `run-hook` 相当を CL で実現する。
 
-### destructure-case マクロ
+### `destructure-case` マクロ
 
 パターンマッチ。
 
-### decode-message 関数、encode-message 関数
+### `decode-message` 関数、`encode-message` 関数
 
-### read-message 関数、read-form 関数、read-packet 関数、parse-header 関数
+TODO
+
+### `read-message` 関数、`read-form` 関数、`read-packet` 関数、`parse-header` 関数
+
+TODO
 
 ### synonym-stream two-way-stream
-
+TODO
 
 # SLIME の起動
+TODO
 
 # SWANK サーバの起動 
+TODO
 
 ## SWANK サーバ起動の概要
 
@@ -288,14 +297,13 @@ Emacs の add-hook, run-hook 相当。
         - `initialize-multiprocessing` I/F 関数を実行する。
             - `start-sentinel` 関数を実行する。
                 - スレッド "Swank Sentinel" を生成する(`spawn` I/F)。
-            - スレッド "Swank ソケットのポート番号" を生成する(`spwan` I/F)。
+            - スレッド "Swank ソケットのポート番号" を生成する(`spawn` I/F)。
 
 ## `*communication-style*` 変数
 
 Swank と Lisp の通信方法を管理する。デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
 
-
-
 # ./contrib/swank-media
 
+TODO
 
