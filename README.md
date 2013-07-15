@@ -172,25 +172,51 @@ slime-net-send
      (10 "Swank Sentinel" "Running")
      (11 "main thread" "Running"))
 
+### SBCL での実装
+
+sbcl 環境では、 `sb-thread` パッケージの関数を用いて実装されている。
+
+| Interface | SBCL 実装 |
+|---------|----------|
+| INITIALIZE-MULTIPROCESSING | デフォルト |
+| SPAWN | `sb-thread:make-thread` |
+| THREAD-ID | 実装 |
+| FIND-THREAD | 実装 |
+| THREAD-NAME | 実装 (`sb-thread:thread-name`) |
+| THREAD-STATUS | 実装 (`sb-thread:thread-alive-p`) |
+| THREAD-ATTRIBUTES | デフォルト |
+| CURRENT-THREAD | 実装(`sb-thread:*current-thread*`) |
+| ALL-THREADS | 実装(`sb-thread:list-all-threads`) |
+| THREAD-ALIVE-P | 実装(`sb-thread:thread-alive-p`) |
+| INTERRUPT-THREAD | 実装(`sb-thread:interrupt-thread`) |
+| KILL-THREAD | 実装(`sb-thread:terminate-thread`) |
+| SEND | 実装 |
+| RECEIVE | デフォルト | 
+| RECEIVE-IF | 実装 |
+| REGISTER-THREAD | 実装 |
+| FIND-REGISTERED | 実装 |
+| SET-DEFAULT-INITIAL-BINDING | デフォルト |
+| WAIT-FOR-INPUT | 実装 |
+
+#### `spawn` (I/F)
+
+関数を引数とし、その関数を実行するスレッドを作成する。sbcl の multithread 環境では、`sb-thread:make-thread` を実行する。
+
+
+### スレッドの役割
 
 - repl-thread
-
 - auto-flush-thread
-
 - swank-indentation-cache-thread
-
 - reader-thread
-
 - control-thread
-
-send-to-emacs での送信先。
-
 - Swank port-number
-
 - Swank Sentinel
-
 - main thread
 
+#### control-thread
+
+`send-to-emacs` の送信先。
 
 ## インターフェース
 
@@ -225,7 +251,6 @@ swank サーバのインターフェースはマクロ `definterface` で定義�
 
 Emacs と Lisp のネットワーク接続を表現する。
 
-
 ### defslimefun マクロ
 
 Emacs が RPC で呼び出せる関数を定義する。
@@ -242,10 +267,14 @@ Emacs の add-hook, run-hook 相当。
 
 ### read-message 関数、read-form 関数、read-packet 関数、parse-header 関数
 
+### synonym-stream two-way-stream
+
 
 # SLIME の起動
 
 # SWANK サーバの起動 
+
+## SWANK サーバ起動の概要
 
 ![sequence diagram slime](seq-swank-boot.png)
 
@@ -253,16 +282,18 @@ Emacs の add-hook, run-hook 相当。
 - `swank-loader:init` 関数に必要なパラメータを渡す。
 - `swank:create-server` 関数を実行する。
     - `swank:setup-server` 関数を実行する。
-        - `init-log-output` 関数を実行する。
-        - `sb-bsd-sockets:inet-socket` 関数を実行し、ソケット生成する。
-        - `announce-fn` を `funcall` する。
-        - `initialize-multiprocessing` 関数を実行する。
-            - `start-sentinel` を実行する。
-            - `spwan` を実行する。
-            
+        - `*log-output*` を初期化する(`init-log-output` 関数)。
+        - ソケットを生成する(`sb-bsd-sockets:inet-socket` 関数)。
+        - `announce-fn` を実行する(`funcall`)。
+        - `initialize-multiprocessing` I/F 関数を実行する。
+            - `start-sentinel` 関数を実行する。
+                - スレッド "Swank Sentinel" を生成する(`spawn` I/F)。
+            - スレッド "Swank ソケットのポート番号" を生成する(`spwan` I/F)。
 
+## `*communication-style*` 変数
 
-デフォルトの `*communication-style*` は、`definterface` で定義される `preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+Swank と Lisp の通信方法を管理する。デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+
 
 
 # ./contrib/swank-media
