@@ -176,27 +176,27 @@ slime-net-send
 
 sbcl 環境では、 `sb-thread` パッケージの関数を用いて実装されている。
 
-| Interface | SBCL 実装 |
+| Interface | 説明 | SBCL 実装 |
 |---------|----------|
-| INITIALIZE-MULTIPROCESSING | デフォルト |
-| SPAWN | `sb-thread:make-thread` |
-| THREAD-ID | 実装 |
-| FIND-THREAD | 実装 |
-| THREAD-NAME | 実装 (`sb-thread:thread-name`) |
-| THREAD-STATUS | 実装 (`sb-thread:thread-alive-p`) |
-| THREAD-ATTRIBUTES | デフォルト |
-| CURRENT-THREAD | 実装(`sb-thread:*current-thread*`) |
-| ALL-THREADS | 実装(`sb-thread:list-all-threads`) |
-| THREAD-ALIVE-P | 実装(`sb-thread:thread-alive-p`) |
-| INTERRUPT-THREAD | 実装(`sb-thread:interrupt-thread`) |
-| KILL-THREAD | 実装(`sb-thread:terminate-thread`) |
-| SEND | 実装 |
-| RECEIVE | デフォルト | 
-| RECEIVE-IF | 実装 |
-| REGISTER-THREAD | 実装 |
-| FIND-REGISTERED | 実装 |
-| SET-DEFAULT-INITIAL-BINDING | デフォルト |
-| WAIT-FOR-INPUT | 実装 |
+| initialize-multiprocessing (continuation) | マルチプロセッシングを初期化し、引数 continuation を実行する。| デフォルト |
+| spawn (fn \&key name) | FN を call するスレッドを生成する。 | `sb-thread:make-thread` |
+| thread-id (thread) | THREAD を識別する Emacs-parsable なオブジェクトを返す。| 実装 |
+| find-thread (id) | ID に対するスレッドを返す。 | 実装 |
+| thread-name (thread) | THREAD の名前を返す。 | 実装 (`sb-thread:thread-name`) |
+| thread-status (thread) | THREAD の状態を文字列で返す。 | 実装 (`sb-thread:thread-alive-p`) |
+| thread-attributes (thread) | plist を返す。 | デフォルト |
+| current-thread | 実行中のスレッドを返す。 | 実装(`sb-thread:*current-thread*`) |
+| all-threads | 全てのスレッドの(freshな)リストを返す。| 実装(`sb-thread:list-all-threads`) |
+| thread-alive-p (thread) | スレッドが終了されているか判定する。| 実装(`sb-thread:thread-alive-p`) |
+| interrupt-thread (thread)| Cause THREAD to execute FN.| 実装(`sb-thread:interrupt-thread`) |
+| kill-thread (thread) | THREAD を即座に終了する。| 実装(`sb-thread:terminate-thread`) |
+| send (thread object) | OBJECT をスレッドに送る。 | 実装 |
+| receive (\&optional timeout)| Return the next message from current thread's mailbox.|デフォルト | 
+| receive-if (predicate \&optional timeout) | Return the first message satisfiying PREDICATE.| 実装 |
+| register-thread | ? | 実装 |
+| find-registered | ? | 実装 |
+| set-default-initial-binding | ? | デフォルト |
+| wait-for-input (streams \&optional timeout) | ? | 実装 |
 
 #### `spawn` (I/F)
 
