@@ -8,11 +8,11 @@ FIXME
 
 ## SLIME 実行時の process およびバッファ
 
-- SLIME connection  (`slime-connection` 関数 の返り値)
+- SLIME connection (`slime-connection` 関数 の返り値)
 - SLIME process (`slime-process` 関数の返り値
 - `*slime-events*` バッファ
 
-Emacs のスクラッチバッファで確認できる。
+SLIME process は、SLIME から Lisp プロセスを起動した場合と、既に起動済みの swank サーバに接続する場合とで異なる。
 
     (slime-connection)
     => #<process SLIME Lisp>
@@ -51,7 +51,7 @@ SLIME connection に紐づいたバッファ。バッファ名は先頭にスペ
 
 TODO
 
-process filter.メッセージを処理し、 event dispatcher に渡す。
+メッセージを処理し、 event dispatcher に渡す。
 
 - `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
@@ -59,7 +59,7 @@ process filter.メッセージを処理し、 event dispatcher に渡す。
 
 #### process sentinel `slime-net-sentinel`
 
-"Lisp connection closed unexpectedly: %s " をメッセージに出力し、後始末をする。
+"Lisp connection closed unexpectedly: %s " をメッセージに出力してから `slime-net-close` を実行し、後始末をする。
 
 #### connection-local 変数
 
@@ -70,7 +70,8 @@ connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで
        (buffer-local-variables (get-buffer " *cl-connection*"))
       if (string-match ".*:connlocal" (symbol-name name))
       collect (cons name value)))
-    =>
+
+swank から取得(`connection-info` interface)し、 `slime-set-connection-info` 関数で設定される。
 
 - slime-connection-number
 - slime-lisp-features
@@ -90,6 +91,13 @@ connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで
 - slime-continuation-counter
 - slime-channels
 - slime-channels-counter
+
+#### `slime-connect` 関数
+
+TODO
+
+Swank サーバへ接続する。
+
 
 ### SLIME process
 
