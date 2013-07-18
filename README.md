@@ -14,6 +14,7 @@ FIXME
 
 SLIME process は、SLIME から Lisp プロセスを起動した場合と、既に起動済みの swank サーバに接続する場合とで異なる。
 
+    ;; elisp
     (slime-connection)
     => #<process SLIME Lisp>
     (slime-process)
@@ -23,8 +24,9 @@ SLIME process は、SLIME から Lisp プロセスを起動した場合と、既
 
 ### SLIME connection
 
-実体はネットワーク接続。Elisp のプロセス関連関数 `process-contact` で詳細情報が得られる。
+実体はネットワーク接続。Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
 
+    ;; elisp
     ;; local
     (pp (process-contact (slime-connection) t))
     =>
@@ -42,8 +44,9 @@ SLIME process は、SLIME から Lisp プロセスを起動した場合と、既
 
 #### buffer `*cl-connection*`
 
-SLIME connection に紐づいたバッファ。バッファ名は先頭にスペースあり。
+SLIME connection に紐づいたバッファ。バッファ名は先頭にスペースあり(ユーザが編集することを想定していない)。
 
+    ;; elisp
     (process-buffer (slime-connection))
     => #<buffer  *cl-connection*>
 
@@ -55,7 +58,7 @@ TODO
 
 - `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
-- event 
+- 
 
 #### process sentinel `slime-net-sentinel`
 
@@ -66,12 +69,13 @@ TODO
 実体は、suffix が ":connlocal" のバッファローカル変数で、
 connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで定義される。
 
+    ;; elisp
     (pp (loop for (name . value) in
        (buffer-local-variables (get-buffer " *cl-connection*"))
       if (string-match ".*:connlocal" (symbol-name name))
       collect (cons name value)))
 
-swank から取得(`connection-info` interface)し、 `slime-set-connection-info` 関数で設定される。
+`connection-info` I/F を呼び出すことで取得し、 `slime-set-connection-info` 関数で設定される。
 
 - slime-connection-number
 - slime-lisp-features
@@ -106,7 +110,8 @@ TODO
 ### `*slime-events*` バッファ
 
 変数 `slime-log-events` が `t` の場合にこのバッファにイベントがログとして出力される。
-ただし、イベントは pretty print され、全てが出力されない場合がある。
+
+イベントは pretty print されるので、全てが出力されない場合がある。
 
 ## slime の重要な関数、マクロ (elisp)
 
@@ -156,26 +161,46 @@ TODO
 
 ## パッケージ
 
-- \:swank
-- \:swank-io-package
-- \:swank-match
-- \:swank-rpc
-- \:swank-backend
+TODO
+
+- `:swank`
+- `:swank-io-package`
+- `:swank-match`
+- `:swank-rpc`
+- `:swank-backend`
+- `:swank-loader`
+- `#:swank-rpc`
+- `:pxref`
 
 ## connection
 
-変数 `*emacs-connection*` が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。
+変数 `*emacs-connection*` が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。`connection-info` 関数で情報を得ることができる。
 
+    ;; CL
+    ;; 
     SWANK> (multithreaded-connection-p *emacs-connection*)
     T
     SWANK> (mconn.socket-io *emacs-connection*)
-    #<SB-SYS:FD-STREAM for "socket 127.0.0.1:62279, peer: 127.0.0.1:62280" {100472C203}>
+    #<SB-SYS:FD-STREAM for "socket 127.0.0.1:yyyyyy, peer: 127.0.0.1:zzzzzz" {100472C203}>
+    SWANK> (connection-info)
+    (:PID 28757 :STYLE :SPAWN :ENCODING
+     (:CODING-SYSTEMS ("utf-8-unix" "iso-latin-1-unix")) :LISP-IMPLEMENTATION
+     (:TYPE "SBCL" :NAME "sbcl" :VERSION "1.1.8" :PROGRAM "/usr/local/bin/sbcl")
+     :MACHINE (:INSTANCE "xxxxxxxxx" :TYPE "X86-64" :VERSION
+     "Intel(R) Core(TM)2 Duo CPU     T7700  @ 2.40GHz")
+     :FEATURES ...(後略))
+    :MODULES
+    ("SWANK-REPL" "SWANK-ARGLISTS" "SWANK-FANCY-INSPECTOR" "SWANK-FUZZY"
+     "SWANK-C-P-C" "SWANK-UTIL" "SWANK-PRESENTATIONS" "SWANK-PACKAGE-FU"
+     "SWANK-MEDIA" "SB-CLTL2" "SB-INTROSPECT" "SB-BSD-SOCKETS" "SB-POSIX"
+     "SB-GROVEL" "ASDF")
+    :PACKAGE (:NAME "SWANK" :PROMPT "SWANK") :VERSION "2013-05-26")
 
 ## Threads
 
 変数 `*thread-list*` で管理される。
 
-     SWANK> (list-threads )
+     SWANK> (list-threads)
      ((:ID :NAME :STATUS)
      (4 "repl-thread" "Running")
      (5 "auto-flush-thread" "Running")
@@ -262,13 +287,15 @@ swank サーバのインターフェースはマクロ `definterface` で定義�
 
 Emacs と Lisp のネットワーク接続を表現する。
 
-### defslimefun マクロ
+### `defslimefun` マクロ
 
-Emacs が RPC で呼び出せる関数を定義する。
+「Emacs が RPC で呼び出せる関数を定義」する。実体は単なる lisp 関数。エクスポートされる。90関数超。
+ `defslimefun` に展開されるマクロ `define-stepper-function` で `sldb-step`, `sldb-next`, `sldb-out` を定義。
+`symbol-status` 関数にシンボルを与えると、シンボルの状態を返す?? (FIXME)
 
-### add-hook マクロ、 run-hook 関数
+### `add-hook` マクロ、 `run-hook` 関数
 
-Emacs の `add-hook`, `run-hook` 相当を CL で実現する。
+Emacs の `add-hook`, `run-hook` 相当を CL で実現するためのマクロ。
 
 ### `destructure-case` マクロ
 
@@ -278,6 +305,8 @@ Emacs の `add-hook`, `run-hook` 相当を CL で実現する。
 
 TODO
 
+Event Decoding/Encoding
+
 ### `read-message` 関数、`read-form` 関数、`read-packet` 関数、`parse-header` 関数
 
 TODO
@@ -285,8 +314,19 @@ TODO
 ### synonym-stream two-way-stream
 TODO
 
-# SLIME の起動
+### `swank-error` error
+
 TODO
+
+### `end-of-repl-input` error
+TODO
+
+### `invoke-default-debugger` コンディション
+TODO
+
+# SLIME の起動
+
+![sequence connect slime](seq-slime-boot.png)
 
 # SWANK サーバの起動 
 TODO
@@ -310,6 +350,13 @@ TODO
 ## `*communication-style*` 変数
 
 Swank と Lisp の通信方法を管理する。デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+
+## `ping-pong` 関数
+
+TODO
+`send-to-emacs` の例。Lisp から `(:ping id tag)` を送信し、`(:emacs-pong tag)` イベントを待つ。
+`maybe-slow-down` 関数は `*send-counter*` が 100 を超えると、0 に戻した上で `ping-pong` 関数を実行する。
+
 
 # ./contrib/swank-media
 
