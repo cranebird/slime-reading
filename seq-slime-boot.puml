@@ -1,0 +1,9 @@
+@startuml seq-slime-boot.png
+title connect slime
+hide footbox
+
+"Emacs" -> "Emacs" : (slime-connect)
+"Emacs" -> "Emacs" : (slime-net-connect)
+"Emacs" -> "Emacs" : (slime-setup-connection)
+
+@enduml
