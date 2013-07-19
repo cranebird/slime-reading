@@ -53,12 +53,10 @@ SLIME connection に紐づいたバッファ。バッファ名は先頭にスペ
 #### Process filter `slime-net-filter`
 
 TODO
-
 メッセージを処理し、 event dispatcher に渡す。
 
 - `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
-- 
 
 #### process sentinel `slime-net-sentinel`
 
@@ -169,7 +167,7 @@ TODO
 - `:swank-rpc`
 - `:swank-backend`
 - `:swank-loader`
-- `#:swank-rpc`
+- `:swank-rpc`
 - `:pxref`
 
 ## connection
@@ -177,7 +175,6 @@ TODO
 変数 `*emacs-connection*` が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。`connection-info` 関数で情報を得ることができる。
 
     ;; CL
-    ;; 
     SWANK> (multithreaded-connection-p *emacs-connection*)
     T
     SWANK> (mconn.socket-io *emacs-connection*)
@@ -198,7 +195,7 @@ TODO
 
 ## Threads
 
-変数 `*thread-list*` で管理される。
+変数 `*thread-list*` で管理される。`list-thread` 関数で ID、名称、 および状態を得ることができる。
 
      SWANK> (list-threads)
      ((:ID :NAME :STATUS)
@@ -213,7 +210,7 @@ TODO
 
 ### SBCL での実装
 
-sbcl 環境では、 `sb-thread` パッケージの関数を用いて実装されている。
+スレッド関連のI/Fは、sbcl 環境では `sb-thread` パッケージの関数を用いて実装されている。
 
 |Interface | 説明 | SBCL 実装 |
 |---------|--------|----------|
