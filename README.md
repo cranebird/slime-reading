@@ -2,6 +2,15 @@
 
 # Emacs 側
 
+## 概要
+
+TODO ここに主要な Emacs 側の概念を列挙する。
+
+<!-- | ライブラリ | 複数の組み込みライブラリを使用 | -->
+<!-- | プロセス | 複数のプロセス | -->
+<!-- | バッファ | バッファ | -->
+
+
 ## Elisp ライブラリ
 
 ![components diagram slime](comp-slime.png)
@@ -176,7 +185,11 @@ TODO
 
 # Swank 側
 
-## パッケージ
+## 概要
+
+TODO ここに swank 側の主要な概念を列挙する。
+
+## Common Lisp パッケージ
 
 ![components diagram swank](comp-swank.png)
 
@@ -187,7 +200,7 @@ TODO
 - `:swank-backend`
 - `:swank-loader`
 - `:swank-rpc`
-- `:pxref`
+<!-- - `:pxref` -->
 
 ## connection
 
@@ -340,11 +353,23 @@ TODO
 ### `invoke-default-debugger` コンディション
 TODO
 
-# SLIME の起動
+# SLIME の起動(起動済みの swank サーバへの接続)
 
 ![sequence connect slime](seq-slime-boot.png)
 
+- `slime-connect` 関数を実行する。host はループバックアドレス、ポートは ssh tunneling で指定したポート。
+    - `slime-connect` 関数はメッセージ "Connecting to Swank on port XXXX.." を表示する。
+    - `slime-connect` 関数は `slime-net-connect` 関数を実行し、process を生成する。
+        - `slime-net-connect` 関数は `open-network-stream` 関数を実行し、HOST への TCP 接続を生成する。
+        - `slime-net-connect` 関数は、プロセスを `slime-net-processes` 変数へ push する。
+        - `slime-net-connect` 関数は、生成した TCP 接続にプロセスフィルター、プロセス監視関数を設定する。
+        - `slime-net-connect` 関数は、 `slime-set-query-on-exit-flag` を実行する。
+        - `slime-secret` があれば処理 (TODO)
+        - プロセスを返す
+
+
 # SWANK サーバの起動 
+
 TODO
 
 ## SWANK サーバ起動の概要
