@@ -8,25 +8,25 @@ FIXME
 
 ## SLIME 実行時の process およびバッファ
 
-- SLIME connection (`slime-connection` 関数 の返り値)
-- SLIME process (`slime-process` 関数の返り値
-- `*slime-events*` バッファ
+SLIME 実行時に以下のプロセスとバッファが存在する。
 
-SLIME process は、SLIME から Lisp プロセスを起動した場合と、既に起動済みの swank サーバに接続する場合とで異なる。
+| 種別 | 種類 | 説明 | 参照方法  | 
+|--------|--------|--------|--------|
+| process | SLIME connection | 接続 | `slime-connection` 関数 |
+| process | SLIME process | SLIME connection に対するプロセス | `slime-process` 関数 |
+| buffer | ` *slime-repl xxxx` | REPL バッファ | - |
+| buffer | ` *cl-connection*` | SLIME connection に関連したバッファ | - |
+| buffer | `*inferior-lisp*` | SLIME process に関連したバッファ | - |
+| buffer | `*slime-events*` | events | - |
+
+
+### SLIME connection
+
+`slime-connection` 関数 の返り値として得られる。実体はネットワーク接続。Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
 
     ;; elisp
     (slime-connection)
     => #<process SLIME Lisp>
-    (slime-process)
-    => #<process inferior-lisp>  ;; local で swank を実行中の場合
-    (slime-process)
-    => nil ;; 既に起動済みの swank に接続した場合
-
-### SLIME connection
-
-実体はネットワーク接続。Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
-
-    ;; elisp
     ;; local
     (pp (process-contact (slime-connection) t))
     =>
@@ -104,6 +104,14 @@ Swank サーバへ接続する。
 ### SLIME process
 
 TODO
+`slime-process` 関数の返り値として得られる。SLIME から Lisp プロセスを起動した場合と、既に起動済みの swank サーバに接続する場合とで異なる。
+
+    ;; elisp
+    (slime-process)
+    => #<process inferior-lisp>  ;; local で swank を実行中の場合
+    (slime-process)
+    => nil ;; 既に起動済みの swank に接続した場合
+
 
 ### `*slime-events*` バッファ
 
