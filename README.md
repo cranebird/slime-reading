@@ -1,28 +1,30 @@
-# コンポーネント
-
-FIXME
-![components diagram slime](comp-slime.png)
-![components diagram swank](comp-swank.png)
+# SLIME / SWANK
 
 # Emacs 側
+
+## Elisp ライブラリ
+
+![components diagram slime](comp-slime.png)
 
 ## SLIME 実行時の process およびバッファ
 
 SLIME 実行時に以下のプロセスとバッファが存在する。
 
-| 種別 | 種類 | 説明 | 参照方法  | 
+| 種別 | 名称 | 説明 | 参照方法  | 
 |--------|--------|--------|--------|
 | process | SLIME connection | 接続 | `slime-connection` 関数 |
 | process | SLIME process | SLIME connection に対するプロセス | `slime-process` 関数 |
 | buffer | ` *slime-repl xxxx` | REPL バッファ | - |
 | buffer | ` *cl-connection*` | SLIME connection に関連したバッファ | - |
 | buffer | `*inferior-lisp*` | SLIME process に関連したバッファ | - |
-| buffer | `*slime-events*` | events | - |
-
+| buffer | `*slime-events*` | イベントログバッファ | `slime-events-buffer` 関数|
 
 ### SLIME connection
 
-`slime-connection` 関数 の返り値として得られる。実体はネットワーク接続。Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
+`slime-connection` 関数 の返り値として得られる or 変数 `slime-default-connection` 。実体はネットワーク接続。プロセスフィルタ関数として `slime-net-fileter` 関数、
+プロセス監視関数として `slime-net-sentinel` 関数を持つ。
+
+Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
 
     ;; elisp
     (slime-connection)
@@ -42,27 +44,36 @@ SLIME 実行時に以下のプロセスとバッファが存在する。
     :remote [127 0 0 1 xxxx] :local [127 0 0 1 49188]
     :filter slime-net-filter :sentinel slime-net-sentinel)
 
-#### buffer `*cl-connection*`
+#### `*cl-connection*` バッファ
 
-SLIME connection に紐づいたバッファ。バッファ名は先頭にスペースあり(ユーザが編集することを想定していない)。
+TODO
+
+SLIME connection に紐づいたバッファ。
+ユーザが編集することを想定していないバッファ(バッファ名先頭にスペースあり)。
 
     ;; elisp
     (process-buffer (slime-connection))
     => #<buffer  *cl-connection*>
 
-#### Process filter `slime-net-filter`
+#### `slime-net-filter` 関数
 
 TODO
+
+プロセス・フィルタ関数。関連付けられているプロセス(ソケット)からの標準出力を受けとる。
+
+
 メッセージを処理し、 event dispatcher に渡す。
 
 - `*cl-connection*` バッファに受けとったメッセージを出力する。
 - メッセージを全て受けとった場合、メッセージを read する。
 
-#### process sentinel `slime-net-sentinel`
+#### `slime-net-sentinel` 関数
 
-"Lisp connection closed unexpectedly: %s " をメッセージに出力してから `slime-net-close` を実行し、後始末をする。
+プロセス監視関数。
 
-#### connection-local 変数
+"Lisp connection closed unexpectedly: %s " をメッセージに出力してから `slime-net-close` 関数を実行し、後始末をする。
+
+#### `connection-local` 変数
 
 実体は、suffix が ":connlocal" のバッファローカル変数で、
 connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで定義される。
@@ -167,7 +178,7 @@ TODO
 
 ## パッケージ
 
-TODO
+![components diagram swank](comp-swank.png)
 
 - `:swank`
 - `:swank-io-package`
