@@ -339,7 +339,7 @@ multithread 環境の場合、実体は swank.lisp で定義される構造体 `
 ### スレッドの役割
 
 TODO
-各々のスレッドについて説明を記載する。
+ここに各々のスレッドについて説明を記載する。
 
 - repl-thread
 - auto-flush-thread
@@ -352,11 +352,14 @@ TODO
 
 #### control-thread
 
-`send-to-emacs` の送信先。
+TODO
+`send-to-emacs` の送信先?
 
 ## インターフェース
 
-swank サーバのインターフェースはマクロ `definterface` で定義される。定義されたインターフェースはパラメータ `swank-backend::*interfaces-functions*` で管理される。インターフェースは `defimplementation` で実装する。全てのインターフェースが実装される必要はなく、未実装のインターフェースは、パラメータ `*unimplemented-interfaces*` で管理され、起動時に警告される(`warn-unimplemented-interfaces` 関数)。
+swank サーバのインターフェースはマクロ `definterface` で定義される。
+
+定義されたインターフェースはパラメータ `swank-backend::*interfaces-functions*` で管理される。インターフェースは `defimplementation` で実装する。全てのインターフェースが実装される必要はなく、未実装のインターフェースは、パラメータ `*unimplemented-interfaces*` で管理され、起動時に警告される(`warn-unimplemented-interfaces` 関数)。
 
 ### 全インターフェース
 
@@ -389,13 +392,26 @@ Emacs と Lisp のネットワーク接続を表現する。
 
 ### `defslimefun` マクロ
 
-「Emacs が RPC で呼び出せる関数を定義」する。実体は単なる lisp 関数。エクスポートされる。90関数超。
- `defslimefun` に展開されるマクロ `define-stepper-function` で `sldb-step`, `sldb-next`, `sldb-out` を定義。
+> The `DEFSLIMEFUN' macro defines a function that Emacs can call via RPC.
+
+`defslimefun` マクロは Emacs が RPC で呼び出せる関数を定義するために用いられる。
+実体は単なる lisp 関数となる。エクスポートされる。90関数超。
+
+`defslimefun` に展開されるマクロ `define-stepper-function` で `sldb-step`, `sldb-next`, `sldb-out` を定義。
 `symbol-status` 関数にシンボルを与えると、シンボルの状態を返す?? (FIXME)
 
 ### `add-hook` マクロ、 `run-hook` 関数
 
-Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するためのマクロ。
+Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するためのマクロ。以下の Hook が定義される。
+
+`*new-connection-hook*`
+: "This hook is run each time a connection is established"
+`*connection-closed-hook*`
+: "This hook is run when a connection is closed." 
+`*pre-reply-hook*`
+: "Hook run (without arguments) immediately before replying to an RPC."
+`*after-init-hook*`
+: "Hook run after user init files are loaded."
 
 ### `destructure-case` マクロ
 
