@@ -1,14 +1,15 @@
 # SLIME / SWANK
 
+
 ## 主要な機能
 
 (slime.el より抜粋)
 >The main features are:
->A socket-based communication/RPC interface between Emacs and Lisp, enabling introspection and remote development.
->The `slime-mode' minor-mode complementing `lisp-mode'. This new mode includes many commands for interacting with the Common Lisp process.
->A Common Lisp debugger written in Emacs Lisp. The debugger pops up an Emacs buffer similar to the Emacs/Elisp debugger.
->A Common Lisp inspector to interactively look at run-time data.
->Trapping compiler messages and creating annotations in the source file on the appropriate forms.
+>- A socket-based communication/RPC interface between Emacs and Lisp, enabling introspection and remote development.
+>- The `slime-mode' minor-mode complementing `lisp-mode'. This new mode includes many commands for interacting with the Common Lisp process.
+>- A Common Lisp debugger written in Emacs Lisp. The debugger pops up an Emacs buffer similar to the Emacs/Elisp debugger.
+>- A Common Lisp inspector to interactively look at run-time data.
+>- Trapping compiler messages and creating annotations in the source file on the appropriate forms.
 
 ## 重要な概念
 
