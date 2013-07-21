@@ -243,7 +243,6 @@ EXPR を Lisp 側で eval する。継続処理 cont が指定された場合は
 eval した結果を引数として、 cont 関数を実行する。
 
 
-
 ## RPC protocol
 
 ### パケット
