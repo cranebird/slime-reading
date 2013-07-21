@@ -196,25 +196,46 @@ TODO
     - `process-send-string` 関数は、プロセスに文字列を送信する。500文字を超える場合は分割して送信される。
 
 ### `slime-net-read` 関数
+TODO
 
-パケットを read し、 S-式を返す。その後、読んだ部分をバッファから削除する。
+> Read a message from the network buffer.
+
+`slime-net-read` 関数は以下を実行する。
+- バッファの先頭に移動する。
+- `slime-net-decode-length` 関数を実行する。
+- TODO
+- `delete-region` 関数を実行しバッファの先頭から end までをバッファから削除する。
 
 ### `slime-dispatch-event` 関数
 
 TODO
 
-(:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
-そのうえで、 id と continuation の組を connection-local variable として保存する。
-
 ### `slime-rex` マクロ
 
 TODO
+
+slime.el 中で多用されるマクロ。
+
+> `slime-rex' is the RPC primitive which is used to implement both `slime-eval' and `slime-eval-async'.
+
+> Remote EXecute SEXP.
+> VARs are a list of saved variables visible in the other forms.  Each VAR is either a symbol or a list (VAR INIT-VALUE).
+> SEXP is evaluated and the princed version is sent to Lisp.
+> PACKAGE is evaluated and Lisp binds *BUFFER-PACKAGE* to this package.
+> The default value is (slime-current-package).
+> CLAUSES is a list of patterns with same syntax as `destructure-case'.
+> The result of the evaluation of SEXP is dispatched on CLAUSES.
+> The result is either a sexp of the form (:ok VALUE) or (:abort CONDITION).
+> CLAUSES is executed asynchronously.
+
+(:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
+そのうえで、 id と continuation の組を connection-local variable として保存する。
 
 ## RPC protocol
 
 ### パケット
 
-16進数6桁のS-式の長さ部分とS-式本体からなる。`slime-net-send` 関数が生成する。
+16進数6桁のS-式の長さ部分とS-式本体からなる。Elisp 側では `slime-net-send` 関数が生成する。
 
     ;; 例
     00004c(:emacs-rex (swank:listener-eval \"9\n\")
