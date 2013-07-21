@@ -367,9 +367,6 @@ TODO
 
 #### control-thread
 
-TODO
-`send-to-emacs` の送信先?
-
 #### auto-flush-thread
 
 TODO
@@ -423,6 +420,17 @@ swank サーバのインターフェースはマクロ `definterface` で定義�
 
 Emacs と Lisp のネットワーク接続を表現する。
 
+### `create-server` 関数
+
+TODO
+> Start a SWANK server on PORT running in STYLE.
+> If DONT-CLOSE is true then the listen socket will accept multiple connections,
+> otherwise it will be closed after the first.
+
+### `setup-server` 関数
+
+TODO
+
 ### `defslimefun` マクロ
 
 > The `DEFSLIMEFUN' macro defines a function that Emacs can call via RPC.
@@ -453,6 +461,11 @@ Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するため�
 ### `decode-message` 関数、`encode-message` 関数
 
 TODO
+decode-message
+> Read an S-expression from STREAM using the SLIME protocol.
+
+encode-message
+> Write an S-expression to STREAM using the SLIME protocol.
 
 Event Decoding/Encoding
 
@@ -491,9 +504,10 @@ TODO
         - プロセスを返す
 
 
-# SWANK サーバの起動 
+# SWANK サーバの起動と停止
 
 TODO
+`start-server`, `stop-server`, `restart-server`
 
 ## SWANK サーバ起動の概要
 
