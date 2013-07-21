@@ -214,38 +214,14 @@ TODO
 
 イベントディスパッチャ。
 
-|event                |
-|---------------------|
-|emacs-rex            |
-|return               |
-|debug-activate       |
-|debug                |
-|debug-return         |
-|emacs-interrupt      |
-|channel-send         |
-|emacs-channel-send   |
-|read-from-minibuffer |
-|y-or-n-p             |
-|emacs-return-string  |
-|new-features         |
-|indentation-update   |
-|eval-no-wait         |
-|eval                 |
-|emacs-return         |
-|ed                   |
-|inspect              |
-|background-message   |
-|debug-condition      |
-|ping                 |
-|reader-error         |
-|invalid-rpc          |
-|emacs-skipped-packet |
-|test-delay           |
-
-
 ### _macro_ `slime-rex`
 
 TODO
+
+> (slime-rex (&rest SAVED-VARS)
+>   (SEXP &optional (PACKAGE '(slime-current-package))
+>                    (THREAD (quote slime-current-thread)))
+> &rest CONTINUATIONS)
 
 slime.el 中で多用されるマクロ。
 
@@ -286,11 +262,79 @@ eval した結果を引数として、 cont 関数を実行する。
 
 イベントは先頭がキーワード、残りが引数であるリストとして表現される。
 キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
-Emacs 側で dispatch-event
+Emacs 側では `slime-dispatch-event` 関数が、
+Swank 側では `dispatch-evnet` 関数が処理する。
 
-## 例: C-c C-m 押下時のシーケンス図
+### Events
+
+全イベント。32 種類あり、一部は swank 側でのみ処理される。
+
+event                 | slime | swank |
+----------------------|-------|-------|
+background-message    | X     | X     |
+channel-send          | X     | X     |
+debug                 | X     | X     |
+debug-activate        | X     | X     |
+debug-condition       | X     | X     |
+debug-return          | X     | X     |
+emacs-channel-send    | X     | X     |
+ed                    | X     | X     |
+emacs-rex             | X     | X     |
+emacs-interrupt       | X     | X     |
+emacs-pong            |       | X     |
+emacs-return          | X     | X     |
+emacs-return-string   | X     | X     |
+emacs-skipped-packet  | X     |       |
+eval                  | X     | X     |
+eval-no-wait          | X     | X     |
+indentation-update    | X     | X     |
+inspect               | X     | X     |
+invalid-rpc           | X     |       |
+new-features          | X     | X     |
+new-package           |       | X     |
+ping                  | X     | X     |
+presentation-start    |       | X     |
+presentation-end      |       | X     |
+reader-error          | X     | X     |
+read-aborted          |       | X     |
+read-from-minibuffer  | X     | X     |
+read-string           |       | X     |
+return                | X     | X     |
+test-delay            | X     | X     |
+write-string          |       | X     |
+y-or-n-p              | X     | X     |
+
+### Swank Side
+
+TODO
+
+大きく以下のパターンに分けられる。
+
+- `encode-message` 関数を実行するパターン。
+    `write-string`, `debug`, `eval` 等。
+- `send-event` 関数を実行するパターン
+    `emacs-return`, `reader-error` 等。
+- `interrupt-worker-thread` 関数を実行するパターン。`emacs-interrupt` のみ。
+
+`encode-message` は、`write-message` 関数を実行し、現在の connection の socket-io に S-式を書く。`send-event` 関数は、 `send` I/F を実行する。
+
+## 例: C-c C-m 押下時のシーケンス
 
 ![seq](seq-C-c-C-m.png)
+
+## 例: return キー押下時のシーケンス
+
+- ユーザが return キーを押下する。
+- Emacs が `slime-repl-return` 関数を実行する。
+    - `slime-check-connected` 関数を実行する。接続されていない場合は error を通知する。
+    - 完全なS-式の場合(`slime-input-complete-p`)、`slime-repl-send-input` 関数 を実行する。
+        - バッファに改行を insert する。(TODO)
+        - 入力された S-式を得る。(`slime-repl-current-input`)(TODO)
+        - `slime-mark-input-start` (TODO)
+        - `slime-mark-output-start` (TODO)
+        - `slime-repl-send-string` 関数を実行する。
+            - `slime-repl-eval-string` 関数を実行する。
+                - `slime-dispatch-event` 関数に `(:emacs-rex (swank:listener-eval string)` を渡す。
 
 # Swank 側
 
