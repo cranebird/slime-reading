@@ -404,14 +404,14 @@ Emacs と Lisp のネットワーク接続を表現する。
 
 Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するためのマクロ。以下の Hook が定義される。
 
-`*new-connection-hook*`
-: "This hook is run each time a connection is established"
-`*connection-closed-hook*`
-: "This hook is run when a connection is closed." 
-`*pre-reply-hook*`
-: "Hook run (without arguments) immediately before replying to an RPC."
-`*after-init-hook*`
-: "Hook run after user init files are loaded."
+- `*new-connection-hook*`
+    "This hook is run each time a connection is established"
+- `*connection-closed-hook*`
+    "This hook is run when a connection is closed." 
+- `*pre-reply-hook*`
+     "Hook run (without arguments) immediately before replying to an RPC."
+- `*after-init-hook*`
+     "Hook run after user init files are loaded."
 
 ### `destructure-case` マクロ
 
