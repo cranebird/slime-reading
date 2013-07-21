@@ -20,14 +20,23 @@ TODO
 (slime.el)
 >"Connections" are the high-level Emacs<->Lisp networking concept.
 
+TODO
+ここに Emacs-Lisp 間のソケット通信の概念図を描く。
+
 ### Swank Server
+
+TODO
+swank サーバの概要を書く。
+
+
+***
 
 # Emacs 側
 
 ## 概要
 
 TODO
-ここに主要な Emacs 側の概念を列挙する。
+ここに主要な Emacs 側の概念を列挙する。ライブラリ、プロセス、バッファ。
 
 <!-- | ライブラリ | 複数の組み込みライブラリを使用 | -->
 <!-- | プロセス | 複数のプロセス | -->
@@ -175,7 +184,16 @@ TODO
 ### `slime-net-send` 関数
 
 TODO
+> Send a SEXP to Lisp over the socket PROC.
+> This is the lowest level of communication. The sexp will be READ and EVAL'd by Lisp.
+
 `slime-prin1-to-string` 関数で header と payload を作成する。
+
+`slime-net-send` 関数は以下を実行する。
+- payload を生成する。
+- payload の長さをエンコードし、payload とつなげて文字列を生成する
+- `process-send-string` 関数を実行する。
+    - `process-send-string` 関数は、プロセスに文字列を送信する。500文字を超える場合は分割して送信される。
 
 ### `slime-net-read` 関数
 
