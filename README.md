@@ -265,6 +265,34 @@ eval した結果を引数として、 cont 関数を実行する。
 Emacs 側では `slime-dispatch-event` 関数が、
 Swank 側では `dispatch-evnet` 関数が処理する。
 
+Emacs 側の処理は、ユーザインターフェースを提供するものがある。
+
+- `emacs-rex`
+- `return`
+- `debug-activate`, `debug`, `debug-return`
+    debugger 関連。 `sldb-{activate,setup,exit}` 関数を実行する。TODO
+- `inspect`
+    `slime-open-inspector` 関数を実行する。TODO
+- `eval`, `eval-no-wait`
+    Emacs 側で `eval` を実行する。
+- `read-from-minibuffer`, `y-or-n-p`, `ed`
+    Emacs でユーザからの対話的な入力を得る。
+- エラー `reader-error`, `invalid-rpc`
+    Emacs でエラーを通知する。
+ 
+
+
+swank 側の処理は大きく以下の 3 パターンに分けられる。
+
+- `encode-message` 関数を実行するパターン。
+    `write-string`, `debug`, `eval` 等。
+- `send-event` 関数を実行するパターン
+    `emacs-return`, `reader-error` 等。
+- `interrupt-worker-thread` 関数を実行するパターン。`emacs-interrupt` のみ。
+
+`encode-message` は、`write-message` 関数を実行し、現在の connection の socket-io に S-式を書く。`send-event` 関数は、 `send` I/F を実行する。
+
+
 ### Events
 
 全イベント。32 種類あり、一部は swank 側でのみ処理される。
@@ -308,15 +336,6 @@ y-or-n-p              | X     | X     |
 
 TODO
 
-大きく以下のパターンに分けられる。
-
-- `encode-message` 関数を実行するパターン。
-    `write-string`, `debug`, `eval` 等。
-- `send-event` 関数を実行するパターン
-    `emacs-return`, `reader-error` 等。
-- `interrupt-worker-thread` 関数を実行するパターン。`emacs-interrupt` のみ。
-
-`encode-message` は、`write-message` 関数を実行し、現在の connection の socket-io に S-式を書く。`send-event` 関数は、 `send` I/F を実行する。
 
 ## 例: C-c C-m 押下時のシーケンス
 
@@ -334,7 +353,17 @@ TODO
         - `slime-mark-output-start` (TODO)
         - `slime-repl-send-string` 関数を実行する。
             - `slime-repl-eval-string` 関数を実行する。
-                - `slime-dispatch-event` 関数に `(:emacs-rex (swank:listener-eval string)` を渡す。
+                - `slime-dispatch-event` 関数に `(:emacs-rex (swank:listener-eval string)` を渡す。(`slime-rex` マクロの展開形より)
+                    - 
+                    - `slime-dispatch-event` は継続カウンタをインクリメントし、
+                        `slime-rex-continuations` に追加する。
+                    -  `slime-send` 関数を実行する。
+                    - モードラインを処理する。(xemacs のみ。(`slime-recompute-modelines`))
+
+TODO
+swank 側では `(:emacs-rex ...` を受けとると `thread-for-evaluation` スレッドに
+イベントを送信する(`repl-thread`)。`repl-thread` は `eval-for-emacs` 関数を実行し `eval` する。`eval-for-emacs` は `send-to-emacs` 関数を実行し、結果を Emacs に返す。`(:return (:ok result))` または `(:return (:abort xxx))`。
+
 
 # Swank 側
 
