@@ -6,7 +6,7 @@
 (slime.el より抜粋)
 >The main features are:
 >- A socket-based communication/RPC interface between Emacs and Lisp, enabling introspection and remote development.
->- The `slime-mode' minor-mode complementing `lisp-mode'. This new mode includes many commands for interacting with the Common Lisp process.
+>- The `slime-mode` minor-mode complementing `lisp-mode`. This new mode includes many commands for interacting with the Common Lisp process.
 >- A Common Lisp debugger written in Emacs Lisp. The debugger pops up an Emacs buffer similar to the Emacs/Elisp debugger.
 >- A Common Lisp inspector to interactively look at run-time data.
 >- Trapping compiler messages and creating annotations in the source file on the appropriate forms.
@@ -87,7 +87,7 @@ Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
     :remote [127 0 0 1 xxxx] :local [127 0 0 1 49188]
     :filter slime-net-filter :sentinel slime-net-sentinel)
 
-#### `*cl-connection*` バッファ
+#### _buffer_ `*cl-connection*`
 
 TODO
 
@@ -98,7 +98,7 @@ SLIME connection に紐づいたバッファ。
     (process-buffer (slime-connection))
     => #<buffer  *cl-connection*>
 
-#### `slime-net-filter` 関数
+#### _function_ `slime-net-filter`
 
 TODO
 
@@ -113,13 +113,13 @@ TODO
             - `*cl-connection*` バッファをカレントバッファにする。
             - 全てのメッセージの受信が終わっている場合: TODO
 
-#### `slime-net-sentinel` 関数
+#### _function_ `slime-net-sentinel`
 
 プロセス監視関数。
 
 "Lisp connection closed unexpectedly: %s " をメッセージに出力してから `slime-net-close` 関数を実行し、後始末をする。
 
-#### `connection-local` 変数
+#### `connection-local` variables
 
 実体は、suffix が ":connlocal" のバッファローカル変数で、
 connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで定義される。
@@ -153,7 +153,7 @@ Lisp 側から情報を取得し、 `slime-set-connection-info` 関数で設定�
 | slime-channels | ? TODO |
 | slime-channels-counter | ? TODO |
 
-#### `slime-connect` 関数
+#### _function_ `slime-connect`
 
 TODO
 > Connect to a running Swank server. Return the connection.
@@ -173,7 +173,7 @@ TODO
     => nil ;; 既に起動済みの swank に接続した場合
 
 
-### `*slime-events*` バッファ
+### _buffer_ `*slime-events*`
 
 変数 `slime-log-events` が `t` の場合にこのバッファにイベントがログとして出力される。
 
@@ -181,11 +181,11 @@ TODO
 
 ## slime の重要な関数、マクロ (elisp)
 
-### `slime-send` 関数
+### _function_ `slime-send`
 
 `slime-net-send` を実行する。
 
-### `slime-net-send` 関数
+### _function_ `slime-net-send`
 
 TODO
 > Send a SEXP to Lisp over the socket PROC.
@@ -199,7 +199,7 @@ TODO
 - `process-send-string` 関数を実行する。
     - `process-send-string` 関数は、プロセスに文字列を送信する。500文字を超える場合は分割して送信される。
 
-### `slime-net-read` 関数
+### _function_ `slime-net-read`
 TODO
 
 > Read a message from the network buffer.
@@ -210,11 +210,11 @@ TODO
 - TODO
 - `delete-region` 関数を実行しバッファの先頭から end までをバッファから削除する。
 
-### `slime-dispatch-event` 関数
+### _function_ `slime-dispatch-event`
 
 TODO
 
-### `slime-rex` マクロ
+### _macro_ `slime-rex`
 
 TODO
 
@@ -235,7 +235,7 @@ slime.el 中で多用されるマクロ。
 (:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
 そのうえで、 id と continuation の組を connection-local variable として保存する。
 
-### `slime-eval-async` 関数
+### _function_ `slime-eval-async`
 `(slime-eval-async SEXP &optional CONT PACKAGE)`
 > Evaluate EXPR on the superior Lisp and call CONT with the result.
 
@@ -428,22 +428,22 @@ swank サーバのインターフェースはマクロ `definterface` で定義�
 
 ## swank の重要な関数、マクロ、構造体 (Common Lisp)
 
-### connection 構造体
+### _structure_ connection
 
 Emacs と Lisp のネットワーク接続を表現する。
 
-### `create-server` 関数
+### _function_ `create-server`
 
 TODO
 > Start a SWANK server on PORT running in STYLE.
 > If DONT-CLOSE is true then the listen socket will accept multiple connections,
 > otherwise it will be closed after the first.
 
-### `setup-server` 関数
+### _function_ `setup-server`
 
 TODO
 
-### `defslimefun` マクロ
+### _macro_ `defslimefun`
 
 > The `DEFSLIMEFUN' macro defines a function that Emacs can call via RPC.
 
@@ -453,7 +453,7 @@ TODO
 `defslimefun` に展開されるマクロ `define-stepper-function` で `sldb-step`, `sldb-next`, `sldb-out` を定義。
 `symbol-status` 関数にシンボルを与えると、シンボルの状態を返す?? (FIXME)
 
-### `add-hook` マクロ、 `run-hook` 関数
+### _macro_ `add-hook`, _function_ `run-hook`
 
 Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するためのマクロ。以下の Hook が定義される。
 
@@ -466,11 +466,11 @@ Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するため�
 - `*after-init-hook*`
      "Hook run after user init files are loaded."
 
-### `destructure-case` マクロ
+### _macro_ `destructure-case`
 
 パターンマッチマクロ。イベントの条件分岐等で用いられる。
 
-### `decode-message` 関数、`encode-message` 関数
+### _function_ `decode-message`, `encode-message`
 
 TODO
 decode-message
@@ -481,7 +481,7 @@ encode-message
 
 Event Decoding/Encoding
 
-### `read-message` 関数、`read-form` 関数、`read-packet` 関数、`parse-header` 関数
+### _function_ `read-message`, `read-form`, `read-packet`, `parse-header`
 
 TODO
 
@@ -489,15 +489,15 @@ TODO
 
 TODO
 
-### `swank-error` error, `signal-swank-error`
+### _error_ `swank-error`, `signal-swank-error`
 
 TODO
 
-### `end-of-repl-input` error
+### _error_ `end-of-repl-input`
 
 TODO
 
-### `invoke-default-debugger` コンディション, `invoke-default-debugger` 関数
+### _condition_ `invoke-default-debugger`, function `invoke-default-debugger` 
 
 TODO
 
@@ -546,13 +546,13 @@ TODO
                 - スレッド "Swank Sentinel" を生成する(`spawn` I/F)。
             - スレッド "Swank ソケットのポート番号" を生成する(`spawn` I/F)。
 
-## `*communication-style*` 変数
+## _variable_ `*communication-style*`
 
 通信方法を管理する。
 
 デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
 
-## `ping-pong` 関数
+## _function_ `ping-pong`
 
 TODO
 `send-to-emacs` の例。Lisp から `(:ping id tag)` を送信し、`(:emacs-pong tag)` イベントを待つ。
