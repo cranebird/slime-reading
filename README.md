@@ -361,8 +361,12 @@ TODO
                     - モードラインを処理する。(xemacs のみ。(`slime-recompute-modelines`))
 
 TODO
-swank 側では `(:emacs-rex ...` を受けとると `thread-for-evaluation` スレッドに
-イベントを送信する(`repl-thread`)。`repl-thread` は `eval-for-emacs` 関数を実行し `eval` する。`eval-for-emacs` は `send-to-emacs` 関数を実行し、結果を Emacs に返す。`(:return (:ok result))` または `(:return (:abort xxx))`。
+swank 側ではコントロールスレッドが `(:emacs-rex ...)` を受けとると `thread-for-evaluation` スレッドにイベントを送信する(`repl-thread`)。
+`repl-thread` は `repl-loop` 関数を実行している。
+`repl-loop` 関数は `handle-requests` 関数およびその内部で `process-requests` 関数を実行する。`process-requests` 関数はループしイベントを待っている。
+`repl-thread` が `(:emacs-rex ...)` イベントを受けとると `eval-for-emacs` 関数を
+実行する。`eval-for-emacs` は form を `eval` した後、
+`send-to-emacs` 関数を実行して結果を Emacs に返す。`(:return (:ok result))` または `(:return (:abort xxx))`。
 
 
 # Swank 側
