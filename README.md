@@ -216,14 +216,14 @@ TODO
 
 slime.el 中で多用されるマクロ。
 
-> `slime-rex' is the RPC primitive which is used to implement both `slime-eval' and `slime-eval-async'.
+> `slime-rex` is the RPC primitive which is used to implement both `slime-eval` and `slime-eval-async`.
 
 > Remote EXecute SEXP.
 > VARs are a list of saved variables visible in the other forms.  Each VAR is either a symbol or a list (VAR INIT-VALUE).
 > SEXP is evaluated and the princed version is sent to Lisp.
-> PACKAGE is evaluated and Lisp binds *BUFFER-PACKAGE* to this package.
-> The default value is (slime-current-package).
-> CLAUSES is a list of patterns with same syntax as `destructure-case'.
+> PACKAGE is evaluated and Lisp binds `*BUFFER-PACKAGE*` to this package.
+> The default value is (`slime-current-package`).
+> CLAUSES is a list of patterns with same syntax as `destructure-case`.
 > The result of the evaluation of SEXP is dispatched on CLAUSES.
 > The result is either a sexp of the form (:ok VALUE) or (:abort CONDITION).
 > CLAUSES is executed asynchronously.
