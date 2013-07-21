@@ -1,15 +1,36 @@
 # SLIME / SWANK
 
+## 主要な機能
+
+(slime.el より抜粋)
+>The main features are:
+>A socket-based communication/RPC interface between Emacs and Lisp, enabling introspection and remote development.
+>The `slime-mode' minor-mode complementing `lisp-mode'. This new mode includes many commands for interacting with the Common Lisp process.
+>A Common Lisp debugger written in Emacs Lisp. The debugger pops up an Emacs buffer similar to the Emacs/Elisp debugger.
+>A Common Lisp inspector to interactively look at run-time data.
+>Trapping compiler messages and creating annotations in the source file on the appropriate forms.
+
+## 重要な概念
+
+
+### Connection
+
+TODO
+(slime.el)
+>"Connections" are the high-level Emacs<->Lisp networking concept.
+
+### Swank Server
+
 # Emacs 側
 
 ## 概要
 
-TODO ここに主要な Emacs 側の概念を列挙する。
+TODO
+ここに主要な Emacs 側の概念を列挙する。
 
 <!-- | ライブラリ | 複数の組み込みライブラリを使用 | -->
 <!-- | プロセス | 複数のプロセス | -->
 <!-- | バッファ | バッファ | -->
-
 
 ## Elisp ライブラリ
 
@@ -114,10 +135,10 @@ Lisp 側から情報を取得し、 `slime-set-connection-info` 関数で設定�
 | slime-communication-style | Lisp 側の `connection.communication-style` 関数 の実行結果 |
 | slime-machine-instance | Lisp 側の `machine-instance` 関数の実行結果 |
 | slime-connection-coding-systems | TODO lisp 側で生成 `find-external-format`  |
-| slime-rex-continuations | ? |
-| slime-continuation-counter | ? |
-| slime-channels | ? |
-| slime-channels-counter | ? |
+| slime-rex-continuations | ? TODO |
+| slime-continuation-counter | ? TODO |
+| slime-channels | ? TODO |
+| slime-channels-counter | ? TODO |
 
 #### `slime-connect` 関数
 
@@ -182,7 +203,7 @@ TODO
 
 ## イベント
 
-先頭がキーワードであるリスト。キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
+先頭がキーワードであるリストとして表現される。キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
 
 ## 例: C-c C-m 押下時のシーケンス図
 
@@ -192,7 +213,8 @@ TODO
 
 ## 概要
 
-TODO ここに swank 側の主要な概念を列挙する。
+TODO
+ここに swank 側の主要な概念を列挙する。
 
 ## Common Lisp パッケージ
 
@@ -205,11 +227,14 @@ TODO ここに swank 側の主要な概念を列挙する。
 - `:swank-backend`
 - `:swank-loader`
 - `:swank-rpc`
-<!-- - `:pxref` -->
+
+<!-- - `:xref` -->
 
 ## connection
 
-変数 `*emacs-connection*` が Emacs 側との接続を管理する。multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。`connection-info` 関数で情報を得ることができる。
+変数 `*emacs-connection*` が Emacs 側との接続を管理する。
+
+multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。`connection-info` 関数で情報を得ることができる。
 
     ;; CL
     SWANK> (multithreaded-connection-p *emacs-connection*)
@@ -247,7 +272,7 @@ TODO ここに swank 側の主要な概念を列挙する。
 
 ### SBCL での実装
 
-スレッド関連のI/Fは、sbcl 環境では `sb-thread` パッケージの関数を用いて実装されている。
+スレッド関連のI/Fは、sbcl 環境では `sb-thread` パッケージの関数を用いて実装される。
 
 |Interface | 説明 | SBCL 実装 |
 |---------|--------|----------|
@@ -274,6 +299,7 @@ TODO ここに swank 側の主要な概念を列挙する。
 ### スレッドの役割
 
 TODO
+各々のスレッドについて説明を記載する。
 
 - repl-thread
 - auto-flush-thread
@@ -329,11 +355,11 @@ Emacs と Lisp のネットワーク接続を表現する。
 
 ### `add-hook` マクロ、 `run-hook` 関数
 
-Emacs の `add-hook`, `run-hook` 相当を CL で実現するためのマクロ。
+Emacs の `add-hook`, `run-hook` 相当を Common Lisp でも実現するためのマクロ。
 
 ### `destructure-case` マクロ
 
-パターンマッチ。
+パターンマッチマクロ。イベントの条件分岐等で用いられる。
 
 ### `decode-message` 関数、`encode-message` 関数
 
@@ -346,6 +372,7 @@ Event Decoding/Encoding
 TODO
 
 ### synonym-stream two-way-stream
+
 TODO
 
 ### `swank-error` error
@@ -356,6 +383,7 @@ TODO
 TODO
 
 ### `invoke-default-debugger` コンディション
+
 TODO
 
 # SLIME の起動(起動済みの swank サーバへの接続)
@@ -395,7 +423,9 @@ TODO
 
 ## `*communication-style*` 変数
 
-Swank と Lisp の通信方法を管理する。デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+通信方法を管理する。
+
+デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
 
 ## `ping-pong` 関数
 
