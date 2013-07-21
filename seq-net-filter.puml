@@ -1,0 +1,13 @@
+@startuml seq-net-filter.png
+title slime-net-filter
+hide footbox
+
+"Emacs" -> "Emacs" : insert output to \*cl-connection\* buffer
+"Emacs" -> "Emacs" : (slime-process-available-input process)
+"Emacs" -> "Emacs" : set current-buffer to \*cl-connection\* buffer
+"Emacs" -> "Emacs" : read packet
+"Emacs" -> "Emacs" : (slime-log-event event)
+"Emacs" -> "Emacs" : (slime-dispatch-event event process)
+
+
+@enduml
