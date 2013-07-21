@@ -212,7 +212,36 @@ TODO
 
 ### _function_ `slime-dispatch-event`
 
-TODO
+イベントディスパッチャ。
+
+|event                |
+|---------------------|
+|emacs-rex            |
+|return               |
+|debug-activate       |
+|debug                |
+|debug-return         |
+|emacs-interrupt      |
+|channel-send         |
+|emacs-channel-send   |
+|read-from-minibuffer |
+|y-or-n-p             |
+|emacs-return-string  |
+|new-features         |
+|indentation-update   |
+|eval-no-wait         |
+|eval                 |
+|emacs-return         |
+|ed                   |
+|inspect              |
+|background-message   |
+|debug-condition      |
+|ping                 |
+|reader-error         |
+|invalid-rpc          |
+|emacs-skipped-packet |
+|test-delay           |
+
 
 ### _macro_ `slime-rex`
 
@@ -255,7 +284,9 @@ eval した結果を引数として、 cont 関数を実行する。
 
 ## イベント
 
-先頭がキーワードであるリストとして表現される。キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
+イベントは先頭がキーワード、残りが引数であるリストとして表現される。
+キーワード名が ":emacs-" で始まるイベントは、Emacs 側で生成されたもの。
+Emacs 側で dispatch-event
 
 ## 例: C-c C-m 押下時のシーケンス図
 
