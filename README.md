@@ -295,6 +295,18 @@ multithread 環境の場合、実体は swank.lisp で定義される構造体 `
      "SB-GROVEL" "ASDF")
     :PACKAGE (:NAME "SWANK" :PROMPT "SWANK") :VERSION "2013-05-26")
 
+TODO 構造体 multithreaded-connection について
+
+> In multithreaded systems we delegate certain tasks to specific
+> threads. The `reader-thread` is responsible for reading network
+> requests from Emacs and sending them to the `control-thread`; the
+> `control-thread` is responsible for dispatching requests to the
+> threads that should handle them; the `repl-thread` is the one
+> that evaluates REPL expressions. The control thread dispatches
+> all REPL evaluations to the REPL thread and for other requests it
+> spawns new threads.
+
+
 ## Threads
 
 変数 `*thread-list*` で管理される。`list-thread` 関数で ID、名称、 および状態を得ることができる。
@@ -350,10 +362,31 @@ TODO
 - Swank Sentinel
 - main thread
 
+TODO
+`control-thread` 関数で設定される?
+
 #### control-thread
 
 TODO
 `send-to-emacs` の送信先?
+
+#### auto-flush-thread
+
+TODO
+swank-repl.lisp で利用。`auto-flush-loop` 関数を見ること。
+
+#### reader-thread
+
+TODO
+`read-loop` 関数を実行する。
+`read-loop` 関数は、 `decode-message` 関数を実行しソケットからメッセージを読み、 `send` I/F を実行し contorl-thread に
+送る処理を繰り返す。
+
+#### indentation-cache-thread
+
+TODO
+`indentation-cache-loop` 関数を実行する。`indentation-cache-loop` 関数は、 `receive` I/F を実行し、 `handle-indentation-cache-request` を実行する処理を繰り返す。
+
 
 ## インターフェース
 
@@ -431,14 +464,15 @@ TODO
 
 TODO
 
-### `swank-error` error
+### `swank-error` error, `signal-swank-error`
 
 TODO
 
 ### `end-of-repl-input` error
+
 TODO
 
-### `invoke-default-debugger` コンディション
+### `invoke-default-debugger` コンディション, `invoke-default-debugger` 関数
 
 TODO
 
