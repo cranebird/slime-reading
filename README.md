@@ -64,6 +64,9 @@ SLIME 実行時に以下のプロセスとバッファが存在する。
 `slime-connection` 関数 の返り値として得られる or 変数 `slime-default-connection` 。実体はネットワーク接続。プロセスフィルタ関数として `slime-net-fileter` 関数、
 プロセス監視関数として `slime-net-sentinel` 関数を持つ。
 
+> Return the connection to use for Lisp interaction.
+> Signal an error if there's no connection.
+
 Elisp の組み込み関数 `process-contact` で詳細情報が得られる。
 
     ;; elisp
@@ -153,8 +156,9 @@ Lisp 側から情報を取得し、 `slime-set-connection-info` 関数で設定�
 #### `slime-connect` 関数
 
 TODO
+> Connect to a running Swank server. Return the connection.
 
-Swank サーバへ接続する。
+実行中の Swank サーバへ接続する。
 
 
 ### SLIME process
@@ -230,6 +234,15 @@ slime.el 中で多用されるマクロ。
 
 (:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
 そのうえで、 id と continuation の組を connection-local variable として保存する。
+
+### `slime-eval-async` 関数
+`(slime-eval-async SEXP &optional CONT PACKAGE)`
+> Evaluate EXPR on the superior Lisp and call CONT with the result.
+
+EXPR を Lisp 側で eval する。継続処理 cont が指定された場合は、
+eval した結果を引数として、 cont 関数を実行する。
+
+
 
 ## RPC protocol
 
@@ -493,16 +506,25 @@ TODO
 
 ![sequence connect slime](seq-slime-boot.png)
 
-- `slime-connect` 関数を実行する。host はループバックアドレス、ポートは ssh tunneling で指定したポート。
+- `slime-connect` 関数を実行する。HOST はループバックアドレス、ポートは ssh tunneling で指定したポート。
     - `slime-connect` 関数はメッセージ "Connecting to Swank on port XXXX.." を表示する。
-    - `slime-connect` 関数は `slime-net-connect` 関数を実行し、process を生成する。
-        - `slime-net-connect` 関数は `open-network-stream` 関数を実行し、HOST への TCP 接続を生成する。
+    - `slime-connect` 関数は `slime-net-connect` 関数を実行する。
+        - `slime-net-connect` 関数は `open-network-stream` 関数を実行し、HOST への TCP 接続(プロセス)を生成する。
         - `slime-net-connect` 関数は、プロセスを `slime-net-processes` 変数へ push する。
-        - `slime-net-connect` 関数は、生成した TCP 接続にプロセスフィルター、プロセス監視関数を設定する。
+        - `slime-net-connect` 関数は、生成した TCP 接続にプロセスフィルター `slime-net-filter`、プロセス監視関数 `slime-net-sentinel` を設定する。
         - `slime-net-connect` 関数は、 `slime-set-query-on-exit-flag` を実行する。
         - `slime-secret` があれば処理 (TODO)
-        - プロセスを返す
-
+        - プロセスを返す。
+    - `slime-connect` 関数は、`slime-setup-connection` を実行する。
+        - `slime-setup-connection` 関数は `slime-init-connection`
+        関数を実行する。
+            - `slime-init-connection` 関数は、`slime-connection-counter` を 0 にする。(TODO 条件あり)
+            - `slime-init-connection` 関数は、`slime-buffer-connection` を設定する。(TODO)
+            - `slime-connection-number` を `slime-connection-counter` + 1 に設定する。(TODO)
+            - `slime-eval-async` 関数に `(swank:connection-info)` を渡す。
+            - `slime-set-connection-info` 関数を実行する。(TODO)
+            
+        - `slime-init-connection` 関数は `slime-select-connection` 関数を実行する。(TODO)
 
 # SWANK サーバの起動と停止
 
@@ -541,4 +563,8 @@ TODO
 # ./contrib/swank-media
 
 TODO
+
+
+
+
 
