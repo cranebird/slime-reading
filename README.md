@@ -70,11 +70,14 @@ TODO
 
 プロセス・フィルタ関数。関連付けられているプロセス(ソケット)からの標準出力を受けとる。
 
-
 メッセージを処理し、 event dispatcher に渡す。
 
-- `*cl-connection*` バッファに受けとったメッセージを出力する。
-- メッセージを全て受けとった場合、メッセージを read する。
+- `slime-net-filter` 関数は、以下を実行する。
+    - `*cl-connection*` バッファの末尾に文字列を出力する。
+    - `slime-process-available-input` 関数を実行する。
+        - `slime-process-available-input` 関数は以下を実行する。
+            - `*cl-connection*` バッファをカレントバッファにする。
+            - 全てのメッセージの受信が終わっている場合: TODO
 
 #### `slime-net-sentinel` 関数
 
@@ -93,26 +96,28 @@ connection 毎に異なる値を持つ。`slime-def-connection-var` マクロで
       if (string-match ".*:connlocal" (symbol-name name))
       collect (cons name value)))
 
-`connection-info` I/F を呼び出すことで取得し、 `slime-set-connection-info` 関数で設定される。
+`connection-local` 変数は、 `connection-info` I/F を呼び出すことで
+Lisp 側から情報を取得し、 `slime-set-connection-info` 関数で設定される。
 
-- slime-connection-number
-- slime-lisp-features
-- slime-lisp-modules
-- slime-pid
-- slime-lisp-implementation-type
-- slime-lisp-implementation-version
-- slime-lisp-implementation-name
-- slime-lisp-implementation-program
-- slime-connection-name
-- slime-inferior-process
-- slime-communication-style
-- slime-machine-instance
-- slime-connection-coding-systems
-
-- slime-rex-continuations
-- slime-continuation-counter
-- slime-channels
-- slime-channels-counter
+| 変数名 | 定義 |
+|----|----|
+| slime-connection-number | Serial number of a connection |
+| slime-lisp-features | Lisp 側の `*features*` 変数 |
+| slime-lisp-modules | Lisp 側の `*modules*` 変数 |
+| slime-pid | process id |
+| slime-lisp-implementation-type | Lisp 側の `lisp-implementation-type` 関数の実行結果 |
+| slime-lisp-implementation-version | Lisp 側の `lisp-implementation-version` 関数の実行結果 |
+| slime-lisp-implementation-name | `lisp-implementation-type-name` I/F の実行結果。デフォルトでは `lisp-implementation-type` と同じ |
+| slime-lisp-implementation-program | `lisp-implementation-program` I/F の実行結果 |
+| slime-connection-name | Elisp `slime-generate-connection-name` 関数の実行結果 |
+| slime-inferior-process | TODO | 
+| slime-communication-style | Lisp 側の `connection.communication-style` 関数 の実行結果 |
+| slime-machine-instance | Lisp 側の `machine-instance` 関数の実行結果 |
+| slime-connection-coding-systems | TODO lisp 側で生成 `find-external-format`  |
+| slime-rex-continuations | ? |
+| slime-continuation-counter | ? |
+| slime-channels | ? |
+| slime-channels-counter | ? |
 
 #### `slime-connect` 関数
 
