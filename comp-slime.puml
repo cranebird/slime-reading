@@ -1,0 +1,37 @@
+@startuml comp-slime.png
+title Components (SLIME)
+
+package "Emacs" {
+  [slime]
+  [cl]
+  [thingatpt]
+  [comint]
+  [timer]
+  [pp]
+  [font-lock]
+  [easymenu]
+
+  [arc-mode]
+  [apropos]
+  [outline]
+  [etags]
+  [compile]
+  [gud]
+}
+
+
+[slime] ..> [cl] : require
+[slime] ..> [thingatpt] : require
+[slime] ..> [comint] : require
+[slime] ..> [timer] : require
+[slime] ..> [pp] : require
+[slime] ..> [font-lock] : require
+[slime] ..> [easymenu] : require
+[slime] ..> [arc-mode] : require
+[slime] ..> [apropos] : require
+[slime] ..> [outline] : require
+[slime] ..> [etags] : require
+[slime] ..> [compile] : require
+[slime] ..> [gud] : require
+
+@enduml
