@@ -1,0 +1,43 @@
+@startuml seq-swank-threads.png
+title Swank Threads
+hide footbox
+
+[-> "control" : spawn
+activate "control"
+"control" -> "control" : (control-thread)
+
+[-> "reader" : spawn
+activate "reader"
+"reader" -> "reader" : (read-loop)
+
+[-> "indentation-cache" : spawn
+activate "indentation-cache"
+"indentation-cache" -> "indentation-cache" : (indentation-cache-loop)
+
+[-> "auto-flush" : spwan
+activate "auto-flush"
+"auto-flush" -> "auto-flush" : (auto-flush-loop)
+"auto-flush" -> "auto-flush" : (force-output)
+"auto-flush" -> "auto-flush" : (sleep)
+
+[-> "repl" : spawn
+activate "repl"
+"repl" -> "repl" : (repl-loop)
+"repl" -> "repl" : (handle-requests)
+"repl" -> "repl" : (process-requests)
+"repl" -> "repl" : (wait-for-event)
+"repl" -> "repl" : (receive-if) I/F
+
+
+[-> "repl" : kill-thread
+destroy "repl"
+[-> "reader" : kill-thread
+destroy "reader"
+[-> "control" : kill-thread
+destroy "control"
+[-> "auto-flush" : kill-thread
+destroy "auto-flush"
+[-> "indentation-cache" : kill-thread
+destroy "indentation-cache"
+
+@enduml
