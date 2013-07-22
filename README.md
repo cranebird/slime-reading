@@ -394,7 +394,15 @@ TODO
 
 変数 `*emacs-connection*` が Emacs 側との接続を管理する。
 
-multithread 環境の場合、実体は swank.lisp で定義される構造体 `multithreaded-connection`。`connection-info` 関数で情報を得ることができる。
+> Connection structures represent the network connections between
+> Emacs and Lisp. Each has a socket stream, a set of user I/O
+> streams that redirect to Emacs, and optionally a second socket
+> used solely to pipe user-output to Emacs (an optimization).  This
+> is also the place where we keep everything that needs to be
+> freed/closed/killed when we disconnect.
+
+
+multithread 環境の場合、実体は swank.lisp で定義される `multithreaded-connection` 構造体。`connection-info` 関数で情報を得ることができる。
 
     ;; CL
     SWANK> (multithreaded-connection-p *emacs-connection*)
@@ -425,6 +433,10 @@ TODO 構造体 multithreaded-connection について
 > that evaluates REPL expressions. The control thread dispatches
 > all REPL evaluations to the REPL thread and for other requests it
 > spawns new threads.
+
+TODO multithreaded-connection の生成まで。
+- `accept-connections` が `make-connection` を実行。
+    - `make-connection` が `make-multithreaded-connection` を実行
 
 
 ## Threads
@@ -482,8 +494,7 @@ TODO
 - Swank Sentinel
 - main thread
 
-TODO
-`control-thread` 関数で設定される?
+![sequence diagram swank threads](seq-swank-threads.png)
 
 #### control-thread
 
@@ -503,6 +514,26 @@ TODO
 
 TODO
 `indentation-cache-loop` 関数を実行する。`indentation-cache-loop` 関数は、 `receive` I/F を実行し、 `handle-indentation-cache-request` を実行する処理を繰り返す。
+
+#### repl-thread
+
+TODO
+repl-thread と auto-flush-thread は、`create-repl` I/F で生成される。
+
+#### auto-flush-thread
+
+TODO
+repl-thread と auto-flush-thread は、`create-repl` I/F で生成される。
+- `create-repl` 関数が、 `initialize-streams-for-connection` 関数を実行する。
+    - `initialize-streams-for-connection` が `open-stream` を実行する。
+        - `open-stream` 関数が auto-flush-thread を生成する。
+    - `spawn-repl-thread` 関数を実行し repl-thread を生成する。
+
+`auto-flush-loop` 関数を実行する。`auto-flush-loop` 関数は、
+`*auto-flush-interval*` 変数で指定された秒数(デフォルト 0.2 )毎に、
+stream を `force-output` する。
+
+
 
 
 ## インターフェース
@@ -653,12 +684,35 @@ TODO
             - `start-sentinel` 関数を実行する。
                 - スレッド "Swank Sentinel" を生成する(`spawn` I/F)。
             - スレッド "Swank ソケットのポート番号" を生成する(`spawn` I/F)。
+            - `serve-loop` 関数を実行する。
+
+`serve-loop` 関数は以下の通り。
+
+- `note` ローカル関数を実行する。
+    - `send-to-sentinel` 関数を実行し sentinel スレッドに `add-server` メッセージを送信する。
+        - sentinel スレッドはメッセージを受けとり、ソケット、ポート番号、現在のスレッド = Swank port number スレッド、を `*servers*` 変数に push する。
+- `serve` ローカル関数を繰り返し実行する。(TODO)
+    - `accept-connections` 関数を実行する。(TODO)
+
 
 ## _variable_ `*communication-style*`
 
 通信方法を管理する。
 
 デフォルトの `*communication-style*` は、`preferred-communication-style` によって決定される。シンボル `:sb-thread` が `*features*` 変数内にあれば、 `:spawn` となる。
+
+## _variable_ `*connections*`
+TODO
+
+> List of all active connections, with the most recent at the front.
+
+
+## _variable_ `*servers*`
+TODO
+> A list ((server-socket port thread) ...) describing the listening sockets.
+> Used to close sockets on server shutdown or restart.
+
+
 
 ## _function_ `ping-pong`
 
