@@ -183,7 +183,9 @@ TODO
 
 ### _function_ `slime-send`
 
-`slime-net-send` を実行する。
+> Send SEXP directly over the wire on the current connection.
+
+sexp と現在の接続を引数として `slime-net-send` 関数を実行する。
 
 ### _function_ `slime-net-send`
 
@@ -191,13 +193,13 @@ TODO
 > Send a SEXP to Lisp over the socket PROC.
 > This is the lowest level of communication. The sexp will be READ and EVAL'd by Lisp.
 
-`slime-prin1-to-string` 関数で header と payload を作成する。
-
 `slime-net-send` 関数は以下を実行する。
-- payload を生成する。
-- payload の長さをエンコードし、payload とつなげて文字列を生成する
+- sexp から文字列を生成する(`slime-prin1-to-string`)。
+- 文字列に改行を付与して encode し、 payload とする。
+- payload の長さをエンコードし、payload とつなげて文字列を生成する。
 - `process-send-string` 関数を実行する。
-    - `process-send-string` 関数は、プロセスに文字列を送信する。500文字を超える場合は分割して送信される。
+    - `process-send-string` 関数は、プロセスに文字列を送信する。
+        500文字を超える場合は自動的に分割して送信される。
 
 ### _function_ `slime-net-read`
 TODO
@@ -497,6 +499,9 @@ TODO
 ![sequence diagram swank threads](seq-swank-threads.png)
 
 #### control-thread
+TODO
+control-thread は `dispatch-loop` 関数を実行する。
+`dispatch-loop` 関数は 
 
 #### auto-flush-thread
 
@@ -506,9 +511,15 @@ swank-repl.lisp で利用。`auto-flush-loop` 関数を見ること。
 #### reader-thread
 
 TODO
-`read-loop` 関数を実行する。
-`read-loop` 関数は、 `decode-message` 関数を実行しソケットからメッセージを読み、 `send` I/F を実行し contorl-thread に
-送る処理を繰り返す。
+reader-thread は、connection の soket-io ストリームから S-式を読み、
+control-thread に送信(`send`)する。
+
+- `decode-message` 関数は、引数に `swank-io-package` を指定して`read-message` 関数を実行する。
+    - `read-message` 関数は `read-packet` 関数を実行する。
+        - `read-packet` 関数は stream からヘッダー部分を読む(`parse-header`)。
+        - `read-packet` 関数は stream からヘッダーで指定された長さを読み、文字列として返す。
+    - `read-message` 関数は `read-form` 関数を実行する。
+        - `read-form` 関数は `*validate-input*` が `t` の場合 `validating-read` を、それ以外の場合は `read-from-string` を実行し、S-式を返す。
 
 #### indentation-cache-thread
 
@@ -533,8 +544,15 @@ repl-thread と auto-flush-thread は、`create-repl` I/F で生成される。
 `*auto-flush-interval*` 変数で指定された秒数(デフォルト 0.2 )毎に、
 stream を `force-output` する。
 
+#### worker-thread
 
+TODO
+`spawn-worker-thread` 関数で起動。
 
+`thread-for-evaluation` メソッドが引数 `(multithreaded-connection t)` で呼びだされると、`spawn-worker-thread` 関数を起動する。
+> Find or create a thread to evaluate the next request.
+
+TODO `swank-backend::*mailboxes*` 変数には終了した worker thread の mailbox がたまっている??
 
 ## インターフェース
 
