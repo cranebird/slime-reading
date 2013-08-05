@@ -1,6 +1,16 @@
 ;;;;
 ;; swank.scm
 ;;
+;; gauche:
+;; (load "./swank.scm")
+;; (swank-server 5040)
+
+;; emacs:
+;; (defun swank-test ()
+;;   (interactive)
+;;   (slime-connect "127.0.0.1" 5040))
+;; M-x (swank-test)
+
 ;; TODO define-module
 (use gauche.net)
 (use gauche.selector)
@@ -21,19 +31,6 @@
   swank-error?
   (debug-info swank-error-debug-info)
   (reason swank-error-reason))
-
-;;;;; Events
-;; (define-class <event> () ())
-;; (define-class <return-event> (<event>)
-;;   ((id :init-keyword :id :init-value #f)
-;;    (status :init-keyword :status :init-value #f)
-;;    (result :init-keyword :result :init-value #f)
-;;    (abort :init-keyword :abort :init-value #f)))
-
-;; (define-method encode-event ((self <return-event>))
-;;   (if (ref self 'status)
-;;       `(:return (:ok ,(ref self 'result)) ,(ref self 'id))
-;;       `(:return (:abort ,(ref self 'abort)) ,(ref self 'id))))
 
 (define (make-return-event ok result id)
   (if ok
@@ -138,23 +135,6 @@
 (define (write-string message output)
   (send-to-emacs `(:write-string ,message) output))
 
-;; postscript
-(define (make-emacs-ps-stream output)
-  (make <buffered-output-port>
-    :flush (lambda (u8v flag)
-             (write-ps (u8vector->string u8v) output)
-             (u8vector-length u8v))))
-
-(define (write-ps postscript output)
-  (send-to-emacs `(:write-ps ,postscript) output))
-
-(define (draw-ps postscript)
-  (let ((out (emacs-ps-output)))
-    (display postscript out)
-    (flush out)))
-
-(define emacs-ps-output (make-parameter #f))
-
 (define (eval-for-emacs form package id input output)
   ;; FIXME introduce user environment
   (let ((emacs-output (make-emacs-output-stream output)))
@@ -163,12 +143,10 @@
         (lambda ()
           (with-output-to-port emacs-output
             (lambda ()
-              ;; ps-output
-              (parameterize ((emacs-ps-output (make-emacs-ps-stream output)))
-                (let1 result (eval form (interaction-environment))
+              (let1 result (eval form (interaction-environment))
                   (format log-port ";; eval-for-emacs form: ~a ;; result: ~a~%"
                           form result)
-                  (send-to-emacs (make-return-event #t result id) output))))))
+                  (send-to-emacs (make-return-event #t result id) output)))))
         (lambda ()
           (flush emacs-output)
           (close-output-port emacs-output)))))
@@ -224,9 +202,6 @@
                                      (print-right-margin #f)
                                      (print-lines #f))
   '("" nil))
-
-;; (defslimefun swank:draw (postscript)
-;;   `(:write-ps ,postscript))
 
 ;; <slime-connection>
 ;; socket 
