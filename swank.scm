@@ -130,26 +130,6 @@
            ,thunk
            (log-format "*emacs-connection* Closed~%")))))))
 
-(define (accept-handler server)
-  (let ((client (socket-accept server)))
-    (parameterize
-        ((*emacs-connection*
-          (make <emacs-connection>
-            :server server
-            :client client
-            :output (socket-output-port client)
-            :input (socket-input-port client :buffering #f))))
-      (log-format "*emacs-connection* Start~%")
-      (swank-receive (*emacs-connection*))
-      (log-format "*emacs-connection* Closed~%"))))
-
-(define (swank-receive conn)
-  (let loop ()
-    (let1 event (decode-message (input-of conn))
-      (log-format "swank-receive event ~a~%" event)
-      (dispatch-event conn event) ;; TODO use event queue
-      (loop))))
-
 (define (dispatch-event conn event)
   (log-format "dispatch-event: ~s~%" event)
   (match event
@@ -238,15 +218,13 @@
                       :path #t)))
     (log-default-drain log-swank)
     (with-emacs-connection port *emacs-connection*
-      (swank-receive (*emacs-connection*)))))
+      (let loop ()
+        (let1 event (decode-message (input-of (*emacs-connection*)))
+          (log-format "event: ~a~%" event)
+          (dispatch-event (*emacs-connection*) event) ;; TODO use event queue
+          (loop))))))
 
-;; (define (swank-server port)
-;;   (let* ((log-swank (make <log-drain>
-;;                       :program-name "swank"
-;;                       :path #t)))
-;;     (log-default-drain log-swank)
-;;     (with-swank-socket sock port
-;;       (lambda () (accept-handler sock)))))
+
 
 
 
