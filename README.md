@@ -239,8 +239,10 @@ slime.el 中で多用されるマクロ。
 > The result is either a sexp of the form (:ok VALUE) or (:abort CONDITION).
 > CLAUSES is executed asynchronously.
 
-(:emacs-rex form package thread continuation) のイベントを受けとると、continuation の代わりに incf した slime-continuation-counter を slime-send する。 (:emacs-rex form package thread id)
-そのうえで、 id と continuation の組を connection-local variable として保存する。
+- `slime-dispatch-event` 関数が `(:emacs-rex form package thread continuation)` のイベントを受けとる。
+    - `slime-continuation-counter` をインクリメントし `id` に束縛する。
+    - `slime-send` 関数にイベントを渡す。渡すイベントは、元のイベントの continuation 部分を id に置きかえた形式。(`(:emacs-rex form package thread id)` )
+    - id と continuation の組を connection-local variable として保存する。
 
 ### _function_ `slime-eval-async`
 `(slime-eval-async SEXP &optional CONT PACKAGE)`
@@ -248,7 +250,6 @@ slime.el 中で多用されるマクロ。
 
 EXPR を Lisp 側で eval する。継続処理 cont が指定された場合は、
 eval した結果を引数として、 cont 関数を実行する。
-
 
 ## RPC protocol
 
@@ -281,8 +282,6 @@ Emacs 側の処理は、ユーザインターフェースを提供するもの�
     Emacs でユーザからの対話的な入力を得る。
 - エラー `reader-error`, `invalid-rpc`
     Emacs でエラーを通知する。
- 
-
 
 swank 側の処理は大きく以下の 3 パターンに分けられる。
 
@@ -294,8 +293,11 @@ swank 側の処理は大きく以下の 3 パターンに分けられる。
 
 `encode-message` は、`write-message` 関数を実行し、現在の connection の socket-io に S-式を書く。`send-event` 関数は、 `send` I/F を実行する。
 
-
 ### Events
+
+`slime-dispatch-event` 関数は `slime-event-hooks` フックによって拡張される。
+
+FIXME slime-repl.el を見逃している。
 
 全イベント。32 種類あり、一部は swank 側でのみ処理される。
 
@@ -321,17 +323,17 @@ indentation-update    | X     | X     |
 inspect               | X     | X     |
 invalid-rpc           | X     |       |
 new-features          | X     | X     |
-new-package           |       | X     |
+new-package           | X     | X     |
 ping                  | X     | X     |
 presentation-start    |       | X     |
 presentation-end      |       | X     |
 reader-error          | X     | X     |
-read-aborted          |       | X     |
+read-aborted          | X     | X     |
 read-from-minibuffer  | X     | X     |
-read-string           |       | X     |
+read-string           | X     | X     |
 return                | X     | X     |
 test-delay            | X     | X     |
-write-string          |       | X     |
+write-string          | X     | X     |
 y-or-n-p              | X     | X     |
 
 ### Swank Side
@@ -742,8 +744,4 @@ TODO
 # ./contrib/swank-media
 
 TODO
-
-
-
-
 
