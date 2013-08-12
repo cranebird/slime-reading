@@ -108,7 +108,7 @@
    (user-input :init-keyword :input :accessor input-of)
    (user-output :init-keyword :output :accessor output-of)))
 
-(define *emacs-connection* (make-parameter #f))
+;; (define emacs-connection (make-parameter #f))
 
 (define-macro (with-emacs-connection port conn thunk)
   (let ((sock (gensym))
@@ -120,15 +120,13 @@
        (let* ((,client (socket-accept ,sock))
               (,input (socket-input-port ,client :buffering #f))
               (,output (socket-output-port ,client)))
-         (parameterize ((,conn
-                         (make <emacs-connection>
-                           :server ,sock
-                           :client ,client
-                           :output ,output
-                           :input ,input)))
-           (log-format "*emacs-connection* Opend~%")
+         (let ((,conn
+                (make <emacs-connection>
+                  :server ,sock :client ,client
+                  :output ,output :input ,input)))
+           (log-format "connection Opend~%")
            ,thunk
-           (log-format "*emacs-connection* Closed~%")))))))
+           (log-format "connection Closed~%")))))))
 
 (define (dispatch-event conn event)
   (log-format "dispatch-event: ~s~%" event)
@@ -150,22 +148,43 @@
 (define (write-string message output)
   (send-to-emacs `(:write-string ,message) output))
 
+(define-macro (with-emacs-output-stream output emacs-output thunk)
+  `(let ((,emacs-output (make-emacs-output-stream ,output)))
+     (dynamic-wind
+      (lambda () #f)
+      ,thunk
+      (lambda ()
+        (flush ,emacs-output)
+        (close-output-port ,emacs-output)))))
+
 (define (eval-for-emacs conn form package id)
   ;; FIXME introduce user environment
-  (let* ((output (output-of conn))
-         (emacs-output (make-emacs-output-stream output)))
-    (dynamic-wind
-      (lambda () #f)
+  (let* ((output (output-of conn)))
+    (with-emacs-output-stream output emacs-output
       (lambda ()
         (with-output-to-port emacs-output
           (lambda ()
             (let1 result (eval form (interaction-environment))
               (log-format "eval-for-emacs form: ~a~%" form)
               (log-format "eval-for-emacs result: ~a~%" result)
-              (send-to-emacs `(:return (:ok ,result) ,id) output)))))
-      (lambda ()
-        (flush emacs-output)
-        (close-output-port emacs-output)))))
+              (send-to-emacs `(:return (:ok ,result) ,id) output))))))))
+
+;; (define (eval-for-emacs conn form package id)
+;;   ;; FIXME introduce user environment
+;;   (let* ((output (output-of conn))
+;;          (emacs-output (make-emacs-output-stream output)))
+;;     (dynamic-wind
+;;       (lambda () #f)
+;;       (lambda ()
+;;         (with-output-to-port emacs-output
+;;           (lambda ()
+;;             (let1 result (eval form (interaction-environment))
+;;               (log-format "eval-for-emacs form: ~a~%" form)
+;;               (log-format "eval-for-emacs result: ~a~%" result)
+;;               (send-to-emacs `(:return (:ok ,result) ,id) output)))))
+;;       (lambda ()
+;;         (flush emacs-output)
+;;         (close-output-port emacs-output)))))
 
 ;; Send EVENT to Emacs.
 (define (send-to-emacs event output)
@@ -207,22 +226,23 @@
       `(:values ,(write-to-string/ss result)))))
 
 ;; TODO
-(defslimefun swank:autodoc (raw-form :key 
-                                     (print-right-margin #f)
-                                     (print-lines #f))
+(defslimefun swank:autodoc (raw-form
+                            :key 
+                            (print-right-margin #f)
+                            (print-lines #f))
   '("" nil))
 
+(define (make-swank-drain)
+  (make <log-drain> :program-name "swank" :path #t))
+
 (define (swank-server port)
-  (let* ((log-swank (make <log-drain>
-                      :program-name "swank"
-                      :path #t)))
-    (log-default-drain log-swank)
-    (with-emacs-connection port *emacs-connection*
-      (let loop ()
-        (let1 event (decode-message (input-of (*emacs-connection*)))
-          (log-format "event: ~a~%" event)
-          (dispatch-event (*emacs-connection*) event) ;; TODO use event queue
-          (loop))))))
+  (log-default-drain (make-swank-drain))
+  (with-emacs-connection port conn
+    (let loop ()
+      (let1 event (decode-message (input-of conn))
+        (log-format "event: ~a~%" event)
+        (dispatch-event conn event) ;; TODO use event queue
+        (loop)))))
 
 
 
