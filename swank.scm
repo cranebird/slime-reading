@@ -236,10 +236,7 @@
         (dispatch-event conn event) ;; TODO use event queue
         (loop)))))
 
-;;(define (%repl-print . vals) (for-each (^e (write/ss e) (newline)) vals))
-;;(define (%repl-prompt) (display "gosh> ") (flush))
-
-;; Gauche src/libeval.scm
+;; see Gauche src/libeval.scm
 (define (repl port)
   (log-default-drain (make-swank-drain))
   (with-emacs-connection port conn
@@ -249,17 +246,14 @@
           (printer (lambda vals (for-each
                                  (^e (write/ss e)
                                      (newline)) vals)))
-          (prompter (lambda () (display "repl> ") (flush)))
-          )
+          (prompter (lambda () (display "repl> ") (flush))))
       (let loop1 ()
-        ;;(log-format "loop1~%")
         (guard
          (e [else
              (report-error e)
              (log-format "error: ~a~%" e)
              #f])
          (let loop2 ()
-           ;;(log-format "loop2~%")
            (prompter)
            (let1 exp (reader)
              (if (not (eof-object? exp))
