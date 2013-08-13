@@ -171,18 +171,6 @@
               (log-format "eval-for-emacs result: ~a~%" result)
               result)))))))
 
-;; (define (eval-for-emacs conn form package id)
-;;   ;; FIXME introduce user environment
-;;   (let* ((output (output-of conn)))
-;;     (with-emacs-output-stream output emacs-output
-;;       (lambda ()
-;;         (with-output-to-port emacs-output
-;;           (lambda ()
-;;             (let1 result (eval form (interaction-environment))
-;;               (log-format "eval-for-emacs form: ~a~%" form)
-;;               (log-format "eval-for-emacs result: ~a~%" result)
-;;               (send-to-emacs `(:return (:ok ,result) ,id) output))))))))
-
 ;; Send EVENT to Emacs.
 (define (send-to-emacs event output)
   (encode-message event output))
@@ -219,8 +207,9 @@
   (log-format "listener-eval: ~a~%" string)
   (let ((sexp (read-from-string string)))
     (log-format "listener-eval: sexp ~a~%" sexp)
-    (let ((result (eval sexp  (interaction-environment))))
-      `(:values ,(write-to-string/ss result)))))
+    (call-with-values (lambda () (eval sexp (interaction-environment)))
+      (lambda result
+        `(:values . ,(map write-to-string/ss result))))))
 
 ;; TODO
 (defslimefun swank:autodoc (raw-form
