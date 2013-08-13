@@ -17,6 +17,7 @@
 (use text.parse)
 (use util.match)
 (use srfi-13)
+(use srfi-19)
 (use gauche.uvector)
 (use gauche.vport)
 (use gauche.parameter)
@@ -132,7 +133,8 @@
   (log-format "dispatch-event: ~s~%" event)
   (match event
     ((:emacs-rex form package thread-id id) 
-     (eval-for-emacs conn form package id))
+     (let1 result (eval-for-emacs conn form package id)
+       (send-to-emacs `(:return (:ok ,result) ,id) (output-of conn))))
     (_
      (log-format "Unknown event: ~s~%" event)
      (errorf <swank-error> "dispatch-evnet: Unknown event ~a" event))))
@@ -167,24 +169,19 @@
             (let1 result (eval form (interaction-environment))
               (log-format "eval-for-emacs form: ~a~%" form)
               (log-format "eval-for-emacs result: ~a~%" result)
-              (send-to-emacs `(:return (:ok ,result) ,id) output))))))))
+              result)))))))
 
 ;; (define (eval-for-emacs conn form package id)
 ;;   ;; FIXME introduce user environment
-;;   (let* ((output (output-of conn))
-;;          (emacs-output (make-emacs-output-stream output)))
-;;     (dynamic-wind
-;;       (lambda () #f)
+;;   (let* ((output (output-of conn)))
+;;     (with-emacs-output-stream output emacs-output
 ;;       (lambda ()
 ;;         (with-output-to-port emacs-output
 ;;           (lambda ()
 ;;             (let1 result (eval form (interaction-environment))
 ;;               (log-format "eval-for-emacs form: ~a~%" form)
 ;;               (log-format "eval-for-emacs result: ~a~%" result)
-;;               (send-to-emacs `(:return (:ok ,result) ,id) output)))))
-;;       (lambda ()
-;;         (flush emacs-output)
-;;         (close-output-port emacs-output)))))
+;;               (send-to-emacs `(:return (:ok ,result) ,id) output))))))))
 
 ;; Send EVENT to Emacs.
 (define (send-to-emacs event output)
@@ -233,7 +230,13 @@
   '("" nil))
 
 (define (make-swank-drain)
-  (make <log-drain> :program-name "swank" :path #t))
+  (make <log-drain> :program-name "swank"
+        :path #t :prefix (lambda (x)
+                           (let ((d (current-date)))
+                             (format #f "~a:~a:~a "
+                                     (date-hour d)
+                                     (date-minute d)
+                                     (date-second d))))))
 
 (define (swank-server port)
   (log-default-drain (make-swank-drain))
@@ -244,8 +247,35 @@
         (dispatch-event conn event) ;; TODO use event queue
         (loop)))))
 
+;;(define (%repl-print . vals) (for-each (^e (write/ss e) (newline)) vals))
+;;(define (%repl-prompt) (display "gosh> ") (flush))
 
+;; Gauche src/libeval.scm
+(define (repl port)
+  (log-default-drain (make-swank-drain))
+  (with-emacs-connection port conn
+    (let ((reader (lambda () (decode-message (input-of conn))))
+          (evaluator (lambda (exp module)
+                       (dispatch-event conn exp)))
+          (printer (lambda vals (for-each
+                                 (^e (write/ss e)
+                                     (newline)) vals)))
+          (prompter (lambda () (display "repl> ") (flush)))
+          )
+      (let loop1 ()
+        ;;(log-format "loop1~%")
+        (guard
+         (e [else
+             (report-error e)
+             (log-format "error: ~a~%" e)
+             #f])
+         (let loop2 ()
+           ;;(log-format "loop2~%")
+           (prompter)
+           (let1 exp (reader)
+             (if (not (eof-object? exp))
+                 (receive results (evaluator exp (current-module))
+                   (apply printer results)
+                   (loop2))))))
+        (loop1)))))
 
-
-
-      
