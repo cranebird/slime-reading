@@ -176,19 +176,6 @@
     (log-format "eval-for-emacs result: ~a~%" result)
     result))
 
-;; (define (eval-for-emacs conn form package id)
-;;   ;; FIXME introduce user environment
-;;   ;; FIXME user input
-;;   (let* ((output (output-of conn)))
-;;     (with-emacs-output-stream output emacs-output
-;;       (lambda ()
-;;         (with-output-to-port emacs-output
-;;           (lambda ()
-;;             (let1 result (eval form (interaction-environment))
-;;               (log-format "eval-for-emacs form: ~a~%" form)
-;;               (log-format "eval-for-emacs result: ~a~%" result)
-;;               result)))))))
-
 ;; Send EVENT to Emacs.
 (define (send-to-emacs event output)
   (encode-message event output))
