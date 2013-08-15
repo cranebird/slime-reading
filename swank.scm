@@ -93,16 +93,6 @@
 (define (make-swank-socket port)
   (make-server-socket 'inet port :reuse-addr? #t))
 
-;; (define-macro (with-swank-socket sock port thunk)
-;;   `(let ((,sock (make-swank-socket ,port)))
-;;      (log-format "start swank on port ~a~%" port)
-;;      (dynamic-wind
-;;          (lambda () #f)
-;;          ,thunk
-;;          (lambda ()
-;;            (log-format "close port ~a~%" ,port)
-;;            (socket-close ,sock)))))
-
 (define (with-swank-socket port fn)
   (let ((sock (make-swank-socket port)))
     (log-format "start swank on port ~a~%" port)
