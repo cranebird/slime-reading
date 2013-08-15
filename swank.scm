@@ -132,7 +132,7 @@
 (define (dispatch-event conn event)
   (log-format "dispatch-event: ~s~%" event)
   (match event
-    ((:emacs-rex form package thread-id id) 
+    ((:emacs-rex form package thread-id id)
      (let1 result (eval-for-emacs conn form package id)
        (send-to-emacs `(:return (:ok ,result) ,id) (output-of conn))))
     (_
@@ -159,17 +159,35 @@
         (flush ,emacs-output)
         (close-output-port ,emacs-output)))))
 
+(define (evaluator conn)
+  (lambda (expr env)
+    (let* ((output (output-of conn)))
+      (with-emacs-output-stream output emacs-output
+        (lambda ()
+          (with-output-to-port emacs-output
+            (lambda ()
+              (eval expr env))))))))
+
 (define (eval-for-emacs conn form package id)
   ;; FIXME introduce user environment
-  (let* ((output (output-of conn)))
-    (with-emacs-output-stream output emacs-output
-      (lambda ()
-        (with-output-to-port emacs-output
-          (lambda ()
-            (let1 result (eval form (interaction-environment))
-              (log-format "eval-for-emacs form: ~a~%" form)
-              (log-format "eval-for-emacs result: ~a~%" result)
-              result)))))))
+  ;; FIXME user input
+  (let1 result ((evaluator conn) form (interaction-environment))
+    (log-format "eval-for-emacs form: ~a~%" form)
+    (log-format "eval-for-emacs result: ~a~%" result)
+    result))
+
+;; (define (eval-for-emacs conn form package id)
+;;   ;; FIXME introduce user environment
+;;   ;; FIXME user input
+;;   (let* ((output (output-of conn)))
+;;     (with-emacs-output-stream output emacs-output
+;;       (lambda ()
+;;         (with-output-to-port emacs-output
+;;           (lambda ()
+;;             (let1 result (eval form (interaction-environment))
+;;               (log-format "eval-for-emacs form: ~a~%" form)
+;;               (log-format "eval-for-emacs result: ~a~%" result)
+;;               result)))))))
 
 ;; Send EVENT to Emacs.
 (define (send-to-emacs event output)
@@ -206,6 +224,7 @@
   ;; FIXME use eval-repl and multiple-value
   (log-format "listener-eval: ~a~%" string)
   (let ((sexp (read-from-string string)))
+    ;; FIXME read error check
     (log-format "listener-eval: sexp ~a~%" sexp)
     (call-with-values (lambda () (eval sexp (interaction-environment)))
       (lambda result
@@ -218,6 +237,8 @@
                             (print-lines #f))
   '("" nil))
 
+(defslimefun quit-lisp () (exit))
+
 (define (make-swank-drain)
   (make <log-drain> :program-name "swank"
         :path #t :prefix (lambda (x)
@@ -227,16 +248,18 @@
                                      (date-minute d)
                                      (date-second d))))))
 
+;;
 (define (swank-server port)
   (log-default-drain (make-swank-drain))
   (with-emacs-connection port conn
     (let loop ()
       (let1 event (decode-message (input-of conn))
         (log-format "event: ~a~%" event)
-        (dispatch-event conn event) ;; TODO use event queue
+         ;; TODO use event queue
+        (dispatch-event conn event)
         (loop)))))
 
-;; see Gauche src/libeval.scm
+;; see lib/gauche/interactive.scm
 (define (repl port)
   (log-default-drain (make-swank-drain))
   (with-emacs-connection port conn
@@ -246,19 +269,33 @@
           (printer (lambda vals (for-each
                                  (^e (write/ss e)
                                      (newline)) vals)))
-          (prompter (lambda () (display "repl> ") (flush))))
-      (let loop1 ()
-        (guard
-         (e [else
-             (report-error e)
-             (log-format "error: ~a~%" e)
-             #f])
-         (let loop2 ()
-           (prompter)
-           (let1 exp (reader)
-             (if (not (eof-object? exp))
-                 (receive results (evaluator exp (current-module))
-                   (apply printer results)
-                   (loop2))))))
-        (loop1)))))
+          (prompter (lambda () (display "swank> ") (flush))))
+      ((with-module gauche read-eval-print-loop)
+       reader evaluator printer prompter))))
 
+
+;;;; see src/libeval.scm
+;; (define (repl port)
+;;   (log-default-drain (make-swank-drain))
+;;   (with-emacs-connection port conn
+;;     (let ((reader (lambda () (decode-message (input-of conn))))
+;;           (evaluator (lambda (exp module)
+;;                        (dispatch-event conn exp)))
+;;           (printer (lambda vals (for-each
+;;                                  (^e (write/ss e)
+;;                                      (newline)) vals)))
+;;           (prompter (lambda () (display "repl> ") (flush))))
+;;       (let loop1 ()
+;;         (guard
+;;          (e [else
+;;              (report-error e)
+;;              (log-format "error: ~a~%" e)
+;;              #f])
+;;          (let loop2 ()
+;;            (prompter)
+;;            (let1 exp (reader)
+;;              (if (not (eof-object? exp))
+;;                  (receive results (evaluator exp (current-module))
+;;                    (apply printer results)
+;;                    (loop2))))))
+;;         (loop1)))))
