@@ -93,15 +93,25 @@
 (define (make-swank-socket port)
   (make-server-socket 'inet port :reuse-addr? #t))
 
-(define-macro (with-swank-socket sock port thunk)
-  `(let ((,sock (make-swank-socket ,port)))
-     (log-format "start swank on port ~a~%" port)
-     (dynamic-wind
-         (lambda () #f)
-         ,thunk
-         (lambda ()
-           (log-format "close port ~a~%" ,port)
-           (socket-close ,sock)))))
+;; (define-macro (with-swank-socket sock port thunk)
+;;   `(let ((,sock (make-swank-socket ,port)))
+;;      (log-format "start swank on port ~a~%" port)
+;;      (dynamic-wind
+;;          (lambda () #f)
+;;          ,thunk
+;;          (lambda ()
+;;            (log-format "close port ~a~%" ,port)
+;;            (socket-close ,sock)))))
+
+(define (with-swank-socket port fn)
+  (let ((sock (make-swank-socket port)))
+    (log-format "start swank on port ~a~%" port)
+    (dynamic-wind
+        (lambda () #f)
+        (fn sock)
+        (lambda ()
+          (log-format "close port ~a~%" port)
+          (socket-close sock)))))
 
 (define-class <emacs-connection> ()
   ((server :init-keyword :server :accessor server-of)
@@ -111,23 +121,22 @@
 
 ;; (define emacs-connection (make-parameter #f))
 
-(define-macro (with-emacs-connection port conn thunk)
-  (let ((sock (gensym))
-        (client (gensym))
+(define (with-emacs-connection port fn)
+  (let ((client (gensym))
         (output (gensym))
         (input (gensym)))
-  `(with-swank-socket ,sock ,port
-     (lambda ()
-       (let* ((,client (socket-accept ,sock))
-              (,input (socket-input-port ,client :buffering #f))
-              (,output (socket-output-port ,client)))
-         (let ((,conn
-                (make <emacs-connection>
-                  :server ,sock :client ,client
-                  :output ,output :input ,input)))
-           (log-format "connection Opend~%")
-           ,thunk
-           (log-format "connection Closed~%")))))))
+    (with-swank-socket port
+                       (lambda (sock)
+                         (let* ((client (socket-accept sock))
+                                (input (socket-input-port client :buffering #f))
+                                (output (socket-output-port client)))
+                           (let ((conn
+                                  (make <emacs-connection>
+                                    :server sock :client client
+                                    :output output :input input)))
+                             (log-format "connection Opend~%")
+                             (fn conn)
+                             (log-format "connection Closed~%")))))))
 
 (define (dispatch-event conn event)
   (log-format "dispatch-event: ~s~%" event)
@@ -239,27 +248,40 @@
 ;;;; main
 (define (swank-server port)
   (log-default-drain (make-swank-drain))
-  (with-emacs-connection port conn
-    (let loop ()
-      (let1 event (decode-message (input-of conn))
-        (log-format "event: ~a~%" event)
-         ;; TODO use event queue
-        (dispatch-event conn event)
-        (loop)))))
+  (log-format "start!~%")
+  (with-emacs-connection port
+      (lambda (conn)
+        (let loop ()
+          (let1 event (decode-message (input-of conn))
+            (log-format "event: ~a~%" event)
+            ;; TODO use event queue
+            (dispatch-event conn event)
+            (loop))))))
+
+;; (define (swank-server port)
+;;   (log-default-drain (make-swank-drain))
+;;   (with-emacs-connection port conn
+;;     (let loop ()
+;;       (let1 event (decode-message (input-of conn))
+;;         (log-format "event: ~a~%" event)
+;;          ;; TODO use event queue
+;;         (dispatch-event conn event)
+;;         (loop)))))
 
 ;; see lib/gauche/interactive.scm
-(define (repl port)
-  (log-default-drain (make-swank-drain))
-  (with-emacs-connection port conn
-    (let ((reader (lambda () (decode-message (input-of conn))))
-          (evaluator (lambda (exp module)
-                       (dispatch-event conn exp)))
-          (printer (lambda vals (for-each
-                                 (^e (write/ss e)
-                                     (newline)) vals)))
-          (prompter (lambda () (display "swank> ") (flush))))
-      ((with-module gauche read-eval-print-loop)
-       reader evaluator printer prompter))))
+;; TODO fix call with-emacs-connection
+;; (define (repl port)
+;;   (log-default-drain (make-swank-drain))
+;;   (with-emacs-connection port conn
+;;     (let ((reader (lambda () (decode-message (input-of conn))))
+;;           (evaluator (lambda (exp module)
+;;                        (dispatch-event conn exp)))
+;;           (printer (lambda vals (for-each
+;;                                  (^e (write/ss e)
+;;                                      (newline)) vals)))
+;;           (prompter (lambda () (display "swank> ") (flush))))
+;;       ((with-module gauche read-eval-print-loop)
+;;        reader evaluator printer prompter))))
 
 ;;;; see src/libeval.scm
 ;; (define (repl port)
