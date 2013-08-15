@@ -150,23 +150,24 @@
 (define (write-string message output)
   (send-to-emacs `(:write-string ,message) output))
 
-(define-macro (with-emacs-output-stream output emacs-output thunk)
-  `(let ((,emacs-output (make-emacs-output-stream ,output)))
-     (dynamic-wind
-      (lambda () #f)
-      ,thunk
-      (lambda ()
-        (flush ,emacs-output)
-        (close-output-port ,emacs-output)))))
+(define (with-emacs-output-stream output fn)
+  (let ((emacs-output (make-emacs-output-stream output)))
+    (dynamic-wind
+        (lambda () #f)
+        (lambda () (fn emacs-output))
+        (lambda ()
+          (flush emacs-output)
+          (close-output-port emacs-output)))))
 
+;; make evaluator
 (define (evaluator conn)
   (lambda (expr env)
-    (let* ((output (output-of conn)))
-      (with-emacs-output-stream output emacs-output
-        (lambda ()
-          (with-output-to-port emacs-output
-            (lambda ()
-              (eval expr env))))))))
+    (let ((output (output-of conn)))
+      (with-emacs-output-stream output
+          (lambda (emacs-output)
+            (with-output-to-port emacs-output
+              (lambda ()
+                (eval expr env))))))))
 
 (define (eval-for-emacs conn form package id)
   ;; FIXME introduce user environment
@@ -235,7 +236,7 @@
                                      (date-minute d)
                                      (date-second d))))))
 
-;;
+;;;; main
 (define (swank-server port)
   (log-default-drain (make-swank-drain))
   (with-emacs-connection port conn
@@ -259,7 +260,6 @@
           (prompter (lambda () (display "swank> ") (flush))))
       ((with-module gauche read-eval-print-loop)
        reader evaluator printer prompter))))
-
 
 ;;;; see src/libeval.scm
 ;; (define (repl port)
