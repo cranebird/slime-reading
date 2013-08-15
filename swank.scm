@@ -97,11 +97,11 @@
   (let ((sock (make-swank-socket port)))
     (log-format "start swank on port ~a~%" port)
     (dynamic-wind
-        (lambda () #f)
-        (fn sock)
-        (lambda ()
-          (log-format "close port ~a~%" port)
-          (socket-close sock)))))
+      (lambda () #f)
+      (fn sock)
+      (lambda ()
+        (log-format "close port ~a~%" port)
+        (socket-close sock)))))
 
 (define-class <emacs-connection> ()
   ((server :init-keyword :server :accessor server-of)
@@ -109,24 +109,22 @@
    (user-input :init-keyword :input :accessor input-of)
    (user-output :init-keyword :output :accessor output-of)))
 
-;; (define emacs-connection (make-parameter #f))
-
+;;; elisp
+;; (put 'with-swank-socket 'scheme-indent-function 1)
+;; (put 'with-emacs-connection 'scheme-indent-function 1)
 (define (with-emacs-connection port fn)
-  (let ((client (gensym))
-        (output (gensym))
-        (input (gensym)))
-    (with-swank-socket port
-                       (lambda (sock)
-                         (let* ((client (socket-accept sock))
-                                (input (socket-input-port client :buffering #f))
-                                (output (socket-output-port client)))
-                           (let ((conn
-                                  (make <emacs-connection>
-                                    :server sock :client client
-                                    :output output :input input)))
-                             (log-format "connection Opend~%")
-                             (fn conn)
-                             (log-format "connection Closed~%")))))))
+  (with-swank-socket port
+    (lambda (sock)
+      (let* ((client (socket-accept sock))
+             (input (socket-input-port client :buffering #f))
+             (output (socket-output-port client)))
+        (let ((conn
+               (make <emacs-connection>
+                 :server sock :client client
+                 :output output :input input)))
+          (log-format "connection Opend~%")
+          (fn conn)
+          (log-format "connection Closed~%"))))))
 
 (define (dispatch-event conn event)
   (log-format "dispatch-event: ~s~%" event)
@@ -149,24 +147,25 @@
 (define (write-string message output)
   (send-to-emacs `(:write-string ,message) output))
 
+;;(put 'with-emacs-output-stream 'scheme-indent-function 1)
 (define (with-emacs-output-stream output fn)
   (let ((emacs-output (make-emacs-output-stream output)))
     (dynamic-wind
-        (lambda () #f)
-        (lambda () (fn emacs-output))
-        (lambda ()
-          (flush emacs-output)
-          (close-output-port emacs-output)))))
+      (lambda () #f)
+      (lambda () (fn emacs-output))
+      (lambda ()
+        (flush emacs-output)
+        (close-output-port emacs-output)))))
 
 ;; make evaluator
 (define (evaluator conn)
   (lambda (expr env)
     (let ((output (output-of conn)))
       (with-emacs-output-stream output
-          (lambda (emacs-output)
-            (with-output-to-port emacs-output
-              (lambda ()
-                (eval expr env))))))))
+        (lambda (emacs-output)
+          (with-output-to-port emacs-output
+            (lambda ()
+              (eval expr env))))))))
 
 (define (eval-for-emacs conn form package id)
   ;; FIXME introduce user environment
@@ -240,13 +239,13 @@
   (log-default-drain (make-swank-drain))
   (log-format "start!~%")
   (with-emacs-connection port
-      (lambda (conn)
-        (let loop ()
-          (let1 event (decode-message (input-of conn))
-            (log-format "event: ~a~%" event)
-            ;; TODO use event queue
-            (dispatch-event conn event)
-            (loop))))))
+    (lambda (conn)
+      (let loop ()
+        (let1 event (decode-message (input-of conn))
+          (log-format "event: ~a~%" event)
+          ;; TODO use event queue
+          (dispatch-event conn event)
+          (loop))))))
 
 ;; (define (swank-server port)
 ;;   (log-default-drain (make-swank-drain))
