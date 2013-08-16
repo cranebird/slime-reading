@@ -208,7 +208,7 @@
 (defslimefun swank:listener-eval (string)
   ;; FIXME use eval-repl and multiple-value
   (log-format "listener-eval: ~a~%" string)
-  (let ((sexp (read-from-string string)))
+  (let1 sexp (read-from-string string)
     ;; FIXME read error check
     (log-format "listener-eval: sexp ~a~%" sexp)
     (call-with-values (lambda () (eval sexp (interaction-environment)))
