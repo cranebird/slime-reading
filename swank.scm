@@ -49,14 +49,14 @@
   (read-message stream "dummy"))
 
 (define (encode-message message stream)
-  (let ((string (write-to-string/ss message)))
+  (let1 string (write-to-string/ss message)
     (format stream "~6,'0x" (string-length string))
     (display string stream)
     (flush stream)))
 
 ;; read and return s-expression
 (define (read-message stream package)
-  (let ((packet (read-packet stream)))
+  (let1 packet (read-packet stream)
     (read-form packet package)))
 
 ;; read a form
@@ -85,7 +85,7 @@
 
 ;; read packet from stream and return string.
 (define (read-packet stream)
-  (let ((len (parse-header stream)))
+  (let1 len (parse-header stream)
     (if (number? len)
         (read-chunk stream len)
         (errorf "Invalid packet header"))))
@@ -93,12 +93,12 @@
 (define (make-swank-socket port)
   (make-server-socket 'inet port :reuse-addr? #t))
 
-(define (with-swank-socket port fn)
-  (let ((sock (make-swank-socket port)))
+(define (call-with-swank-socket port proc)
+  (let1 sock (make-swank-socket port)
     (log-format "start swank on port ~a~%" port)
     (dynamic-wind
       (lambda () #f)
-      (fn sock)
+      (proc sock)
       (lambda ()
         (log-format "close port ~a~%" port)
         (socket-close sock)))))
@@ -110,20 +110,19 @@
    (user-output :init-keyword :output :accessor output-of)))
 
 ;;; elisp
-;; (put 'with-swank-socket 'scheme-indent-function 1)
-;; (put 'with-emacs-connection 'scheme-indent-function 1)
-(define (with-emacs-connection port fn)
-  (with-swank-socket port
+;; (put 'call-with-emacs-connection 'scheme-indent-function 1)
+(define (call-with-emacs-connection port proc)
+  (call-with-swank-socket port
     (lambda (sock)
       (let* ((client (socket-accept sock))
-             (input (socket-input-port client :buffering #f))
+             (input  (socket-input-port client :buffering #f))
              (output (socket-output-port client)))
-        (let ((conn
-               (make <emacs-connection>
-                 :server sock :client client
-                 :output output :input input)))
+        (let1 conn
+            (make <emacs-connection>
+              :server sock :client client
+              :output output :input input)
           (log-format "connection Opend~%")
-          (fn conn)
+          (proc conn)
           (log-format "connection Closed~%"))))))
 
 (define (dispatch-event conn event)
@@ -147,12 +146,12 @@
 (define (write-string message output)
   (send-to-emacs `(:write-string ,message) output))
 
-;;(put 'with-emacs-output-stream 'scheme-indent-function 1)
-(define (with-emacs-output-stream output fn)
-  (let ((emacs-output (make-emacs-output-stream output)))
+;;(put 'call-with-emacs-output-stream 'scheme-indent-function 1)
+(define (call-with-emacs-output-stream output proc)
+  (let1 emacs-output (make-emacs-output-stream output)
     (dynamic-wind
       (lambda () #f)
-      (lambda () (fn emacs-output))
+      (lambda () (proc emacs-output))
       (lambda ()
         (flush emacs-output)
         (close-output-port emacs-output)))))
@@ -160,8 +159,8 @@
 ;; make evaluator
 (define (evaluator conn)
   (lambda (expr env)
-    (let ((output (output-of conn)))
-      (with-emacs-output-stream output
+    (let1 output (output-of conn)
+      (call-with-emacs-output-stream output
         (lambda (emacs-output)
           (with-output-to-port emacs-output
             (lambda ()
@@ -238,7 +237,7 @@
 (define (swank-server port)
   (log-default-drain (make-swank-drain))
   (log-format "start!~%")
-  (with-emacs-connection port
+  (call-with-emacs-connection port
     (lambda (conn)
       (let loop ()
         (let1 event (decode-message (input-of conn))
