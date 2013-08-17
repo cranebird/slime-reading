@@ -39,144 +39,185 @@
 
 ;;;;; Utility
 
-(define (write-to-string/ss s) (write-to-string s write/ss))
+(define write-to-string/ss
+  (lambda (s)
+    (write-to-string s write/ss)))
 
 
 ;;;;; Input
 
 ;; Read an S-expression from STREAM using the SLIME protocol.
-(define (decode-message stream)
-  (read-message stream "dummy"))
+(define decode-message
+  (lambda (stream)
+    (read-message stream "dummy")))
 
-(define (encode-message message stream)
-  (let1 string (write-to-string/ss message)
-    (format stream "~6,'0x" (string-length string))
-    (display string stream)
-    (flush stream)))
+(define encode-message
+  (lambda (message stream)
+    (let1 string (write-to-string/ss message)
+      (format stream "~6,'0x" (string-length string))
+      (display string stream)
+      (flush stream))))
 
 ;; read and return s-expression
-(define (read-message stream package)
-  (let1 packet (read-packet stream)
-    (read-form packet package)))
+(define read-message
+  (lambda (stream package)
+    (let1 packet (read-packet stream)
+      (read-form packet package))))
 
 ;; read a form
-(define (read-form string package)
-  (guard (exc
-          ((<read-error> exc)
-           (log-format "read-form error: ~a~%" string)
-           (raise exc)))
-         (read-from-string string)))
+(define read-form
+  (lambda (string package)
+    (guard (exc
+            ((<read-error> exc)
+             (log-format "read-form error: ~a~%" string)
+             (raise exc)))
+           (read-from-string string))))
 
 ;; parse header of packet and return packet length.
 ;; return #f if invalid format.
-(define (parse-header stream)
-  (string->number (read-chunk stream 6) 16))
+(define packet-header-length 6)
+(define parse-header
+  (lambda (stream)
+    (string->number (read-chunk stream packet-header-length) 16)))
 
 ;; read chunk from stream
-(define (read-chunk stream len)
-  (let1 buffer (read-block len stream)
-    (cond
-     ((eof-object? buffer)
-      (error "read-chunk eof!"))
-     ((= (string-length buffer) len)
-      buffer)
-     (else
-      (error "read-chunk error!")))))
+(define read-chunk
+  (lambda (stream len)
+    (let1 buffer (read-block len stream)
+      (cond
+       ((eof-object? buffer) (error "read-chunk eof!"))
+       ((= (string-length buffer) len) buffer)
+       (else (error "read-chunk error!"))))))
 
 ;; read packet from stream and return string.
-(define (read-packet stream)
-  (let1 len (parse-header stream)
-    (if (number? len)
-        (read-chunk stream len)
-        (errorf "Invalid packet header"))))
+(define read-packet
+  (lambda (stream)
+    (let1 len (parse-header stream)
+      (if (number? len)
+          (read-chunk stream len)
+          (errorf "Invalid packet header: ~a" len)))))
 
-(define (make-swank-socket port)
-  (make-server-socket 'inet port :reuse-addr? #t))
+(define make-swank-socket
+  (lambda (port)
+    (make-server-socket 'inet port :reuse-addr? #t)))
 
-(define (call-with-swank-socket port proc)
-  (let1 sock (make-swank-socket port)
-    (log-format "start swank on port ~a~%" port)
-    (dynamic-wind
-      (lambda () #f)
-      (proc sock)
-      (lambda ()
-        (log-format "close port ~a~%" port)
-        (socket-close sock)))))
+(define call-with-swank-socket
+  (lambda (port proc)
+    (let1 sock #f
+      (unwind-protect
+       (begin
+         (set! sock (make-swank-socket port))
+         (log-format "start swank on port ~a~%" port)
+         (proc sock))
+       (if sock
+           (begin
+             (log-format "closing port ~a...~%" port)
+             (socket-close sock))
+           (log-format "sock is #f~%"))))))
 
 (define-class <emacs-connection> ()
-  ((server :init-keyword :server :accessor server-of)
-   (client :init-keyword :client :accessor client-of)
-   (user-input :init-keyword :input :accessor input-of)
+  ((server      :init-keyword :server :accessor server-of)
+   (client      :init-keyword :client :accessor client-of)
+   (user-input  :init-keyword :input :accessor input-of)
    (user-output :init-keyword :output :accessor output-of)))
+
+(define make-emacs-connection
+  (lambda (sock)
+    (let* ((client (socket-accept sock))
+           (input  (socket-input-port client :buffering #f))
+           (output (socket-output-port client)))
+      (make <emacs-connection>
+        :server sock :client client :output output :input input))))
 
 ;;; elisp
 ;; (put 'call-with-emacs-connection 'scheme-indent-function 1)
-(define (call-with-emacs-connection port proc)
-  (call-with-swank-socket port
-    (lambda (sock)
-      (let* ((client (socket-accept sock))
-             (input  (socket-input-port client :buffering #f))
-             (output (socket-output-port client)))
-        (let1 conn
-            (make <emacs-connection>
-              :server sock :client client
-              :output output :input input)
-          (log-format "connection Opend~%")
-          (proc conn)
-          (log-format "connection Closed~%"))))))
+(define call-with-emacs-connection
+  (lambda (port proc)
+    (let1 conn #f
+      (unwind-protect
+       (begin
+         (call-with-swank-socket port
+           (lambda (sock)
+             (log-format "open emacs-connection...~%")
+             (set! conn (make-emacs-connection sock))
+             (proc conn))))
+       (begin
+         (if conn
+             (begin
+               (log-format "close emacs-connection...~%")
+               ;; do clean up here
+               )
+             (log-format "emacs-connection is #f~%")))))))
 
-(define (dispatch-event conn event)
-  (log-format "dispatch-event: ~s~%" event)
-  (match event
-    ((:emacs-rex form package thread-id id)
-     (let1 result (eval-for-emacs conn form package id)
-       (send-to-emacs `(:return (:ok ,result) ,id) (output-of conn))))
-    (_
-     (log-format "Unknown event: ~s~%" event)
-     (errorf <swank-error> "dispatch-evnet: Unknown event ~a" event))))
+(define dispatch-event
+  (lambda (conn event)
+    (log-format "dispatch-event: ~s~%" event)
+    (match event
+      ((:emacs-rex form package thread-id id)
+       (let1 result (eval-for-emacs conn form package id)
+         (send-to-emacs `(:return (:ok ,result) ,id) (output-of conn))))
+      (_
+       (log-format "Unknown event: ~s~%" event)
+       (errorf <swank-error> "dispatch-evnet: Unknown event ~a" event)))))
 
 ;; emacs output stream
-(define (make-emacs-output-stream output)
-  (make <buffered-output-port>
-    :flush (lambda (u8v flag)
-             (write-string (u8vector->string u8v) output)
-             (u8vector-length u8v))))
+(define make-emacs-output-stream
+  (lambda (output)
+    (make <buffered-output-port>
+      :flush (lambda (u8v flag)
+               (write-string (u8vector->string u8v) output)
+               (u8vector-length u8v)))))
 
 ;; FIXME bad name
-(define (write-string message output)
-  (send-to-emacs `(:write-string ,message) output))
+(define write-string
+  (lambda (message output)
+    (send-to-emacs `(:write-string ,message) output)))
 
 ;;(put 'call-with-emacs-output-stream 'scheme-indent-function 1)
-(define (call-with-emacs-output-stream output proc)
-  (let1 emacs-output (make-emacs-output-stream output)
-    (dynamic-wind
-      (lambda () #f)
-      (lambda () (proc emacs-output))
-      (lambda ()
-        (flush emacs-output)
-        (close-output-port emacs-output)))))
+(define call-with-emacs-output-stream
+  (lambda (output proc)
+    (let1 emacs-output #f
+      (unwind-protect
+       (begin
+         (set! emacs-output (make-emacs-output-stream output))
+         (proc emacs-output))
+       (when emacs-output
+         (flush emacs-output)
+         (close-output-port emacs-output))))))
+
+;; (define call-with-emacs-output-stream
+;;   (lambda (output proc)
+;;     (let1 emacs-output (make-emacs-output-stream output)
+;;       (dynamic-wind
+;;         (lambda () #f)
+;;         (lambda () (proc emacs-output))
+;;         (lambda ()
+;;           (flush emacs-output)
+;;           (close-output-port emacs-output))))))
 
 ;; make evaluator
-(define (evaluator conn)
-  (lambda (expr env)
-    (let1 output (output-of conn)
-      (call-with-emacs-output-stream output
-        (lambda (emacs-output)
-          (with-output-to-port emacs-output
-            (lambda ()
-              (eval expr env))))))))
+(define evaluator
+  (lambda (conn)
+    (lambda (expr env)
+      (let1 output (output-of conn)
+        (call-with-emacs-output-stream output
+          (lambda (emacs-output)
+            (with-output-to-port emacs-output
+              (lambda () (eval expr env)))))))))
 
-(define (eval-for-emacs conn form package id)
-  ;; FIXME introduce user environment
-  ;; FIXME user input
-  (let1 result ((evaluator conn) form (interaction-environment))
-    (log-format "eval-for-emacs form: ~a~%" form)
-    (log-format "eval-for-emacs result: ~a~%" result)
-    result))
+(define eval-for-emacs
+  (lambda (conn form package id)
+    ;; FIXME introduce user environment
+    ;; FIXME user input
+    (let1 result ((evaluator conn) form (interaction-environment))
+      (log-format "eval-for-emacs form: ~a~%" form)
+      (log-format "eval-for-emacs result: ~a~%" result)
+      result)))
 
 ;; Send EVENT to Emacs.
-(define (send-to-emacs event output)
-  (encode-message event output))
+(define send-to-emacs
+  (lambda (event output)
+    (encode-message event output)))
 
 ;;; The `DEFSLIMEFUN' macro defines a function that Emacs can call via RPC.
 ;; A DEFINE for functions that Emacs can call by RPC.
@@ -194,8 +235,9 @@
          ;; check slime version.
 	 :version "2013-05-26"))
 
-(define (all-modules->string-list)
-  (map (lambda (m) (symbol->string (module-name m))) (all-modules)))
+(define all-modules->string-list
+  (lambda ()
+    (map (lambda (m) (symbol->string (module-name m))) (all-modules))))
 
 (defslimefun swank:swank-require (modules :optional filename)
   ;; FIXME what is MODULES?
@@ -224,27 +266,33 @@
 
 (defslimefun quit-lisp () (exit))
 
-(define (make-swank-drain)
-  (make <log-drain> :program-name "swank"
-        :path #t :prefix (lambda (x)
-                           (let ((d (current-date)))
-                             (format #f "~a:~a:~a "
-                                     (date-hour d)
-                                     (date-minute d)
-                                     (date-second d))))))
+(define make-swank-drain
+  (lambda ()
+    (make <log-drain> :program-name "swank"
+          :path #t
+          :prefix (lambda (x)
+                    (let ((d (current-date)))
+                      (format #f "~a:~a:~a "
+                              (date-hour d)
+                              (date-minute d)
+                              (date-second d)))))))
 
 ;;;; main
-(define (swank-server port)
-  (log-default-drain (make-swank-drain))
-  (log-format "start!~%")
-  (call-with-emacs-connection port
-    (lambda (conn)
-      (let loop ()
-        (let1 event (decode-message (input-of conn))
-          (log-format "event: ~a~%" event)
-          ;; TODO use event queue
-          (dispatch-event conn event)
-          (loop))))))
+(define swank-server
+  (lambda (port)
+    (log-default-drain (make-swank-drain))
+    (log-format "start!~%")
+    (unwind-protect
+     (call-with-emacs-connection port
+       (lambda (conn)
+         (let loop ()
+           (let1 event (decode-message (input-of conn))
+             (log-format "server: ~a~%" (socket-status (server-of conn)))
+             (log-format "event: ~a~%" event)
+             ;; TODO use event queue
+             (dispatch-event conn event)
+             (loop)))))
+     (log-format "exit loop~%"))))
 
 ;; (define (swank-server port)
 ;;   (log-default-drain (make-swank-drain))
