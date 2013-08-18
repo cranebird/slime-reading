@@ -300,7 +300,7 @@ swank 側の処理は大きく以下の 3 パターンに分けられる。
 Event 一覧
 
 | event                           | slime | repl  |presentation | swank  |
-|---------------------------------|-------|---------------------|--------|
+|----|----|----|----|----|
 | background-message              | X     |       |             |  X     |
 | channel-send                    | X     |       |             |  X     |
 | debug                           | X     |       |             |  X     |
