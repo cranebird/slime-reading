@@ -117,7 +117,8 @@ TODO
 
 プロセス監視関数。
 
-"Lisp connection closed unexpectedly: %s " をメッセージに出力してから `slime-net-close` 関数を実行し、後始末をする。
+"Lisp connection closed unexpectedly: %s " をメッセージに出力してから
+`slime-net-close` 関数を実行し、後始末をする。
 
 #### `connection-local` variables
 
@@ -655,6 +656,71 @@ TODO
 ### _condition_ `invoke-default-debugger`, function `invoke-default-debugger` 
 
 TODO
+
+# defslimefun で定義される function
+
+-> RPCFunctions.md
+
+## `ping`
+
+tag を受けとり、返す。
+
+## `connection-info`
+
+> Return a key-value list of the form: 
+> `(&key PID STYLE LISP-IMPLEMENTATION MACHINE FEATURES PACKAGE VERSION)`
+> PID: is the process-id of Lisp process (or nil, depending on the STYLE)
+> STYLE: the communication style
+> LISP-IMPLEMENTATION: a list `(&key TYPE NAME VERSION)`
+> FEATURES: a list of keywords
+> PACKAGE: a list `(&key NAME PROMPT)`
+> VERSION: the protocol version
+
+
+
+# swank-gauche.scm 実装
+
+swank-gauche.scm の `defslimefun` の実装状況。
+
+## `connection-info`
+## `quit-lisp`
+## `swank-require`
+## `create-repl`
+## `listener-eval`
+## `interactive-eval`
+## `compile-string-for-emacs`
+## `simple-completions`
+## `completions`
+## `set-package`
+## `operator-arglist`
+## `autodoc`
+API の不一致あり。
+
+## `list-all-package-names`
+## `swank-macroexpand-1`
+## `swank-macroexpand-all`
+## `default-directory`
+## `set-default-directory`
+## `compile-file-if-needed`
+## `load-file`
+## `compile-file-for-emacs`
+## `disassemble-form`
+## `init-inspector`
+## `inspector-nth-part`
+## `inspect-nth-part`
+## `inspector-reinspect`
+## `inspector-toggle-verbose`
+## `inspector-call-nth-action`
+## `inspector-range`
+## `inspector-pop`
+## `inspector-next`
+## `quit-inspector`
+## `describe-inspectee`
+## `describe-symbol`
+## `describe-function`
+
+
+
 
 # SLIME の起動(起動済みの swank サーバへの接続)
 
