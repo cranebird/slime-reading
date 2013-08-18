@@ -298,41 +298,41 @@ swank 側の処理は大きく以下の 3 パターンに分けられる。
 `slime-dispatch-event` 関数は `slime-event-hooks` フックによって拡張される。特に contib/slime-repl.el ファイルで
 repl 周りのイベント処理が行なわれている点に注意。
 
-event                           | slime |repl   |presentation |  swank |
---------------------------------|-------|---------------------|--------|
-background-message              | X     |       |             |  X     |
-channel-send                    | X     |       |             |  X     |
-debug                           | X     |       |             |  X     |
-debug-activate                  | X     |       |             |  X     |
-emacs-channel-send              | X     |       |             |  X     |
-debug-condition                 | X     |       |             |  X     |
-emacs-interrupt                 | X     |       |             |  X     |
-emacs-pong                      |       |       |             |  X     |
-emacs-rex                       | X     |       |             |  X     |
-emacs-return                    | X     |       |             |  X     |
-emacs-return-string             | X     |       |             |  X     |
-emacs-skipped-packet            | X     |       |             |        |
-debug-return                    | X     |       |             |  X     |
-ed                              | X     |       |             |  X     |
-eval                            | X     |       |             |  X     |
-eval-no-wait                    | X     |       |             |  X     |
-indentation-update              | X     |       |             |  X     |
-inspect                         | X     |       |             |  X     |
-invalid-rpc                     | X     |       |             |  X     |
-new-features                    | X     |       |             |  X     |
-new-package                     |       | X     |             |  X     |
-open-dedicated-output-stream    |       | X     |             |  X     |
-ping                            | X     |       |             |  X     |
-presentation-start              |       |       | X           |  X     |
-presentation-end                |       |       | X           |  X     |
-reader-error                    | X     |       |             |  X     |
-read-aborted                    |       | X     |             |  X     |
-read-from-minibuffer            | X     |       |             |  X     |
-read-string                     |       | X     |             |  X     |
-return                          | X     |       |             |  X     |
-test-delay                      | X     |       |             |  X     |
-write-string                    |       | X     |             |  X     |
-y-or-n-p                        | X     |       |             |  X     |
+|event                           | slime |repl   |presentation |  swank |
+|--------------------------------|-------|---------------------|--------|
+|background-message              | X     |       |             |  X     |
+|channel-send                    | X     |       |             |  X     |
+|debug                           | X     |       |             |  X     |
+|debug-activate                  | X     |       |             |  X     |
+|emacs-channel-send              | X     |       |             |  X     |
+|debug-condition                 | X     |       |             |  X     |
+|emacs-interrupt                 | X     |       |             |  X     |
+|emacs-pong                      |       |       |             |  X     |
+|emacs-rex                       | X     |       |             |  X     |
+|emacs-return                    | X     |       |             |  X     |
+|emacs-return-string             | X     |       |             |  X     |
+|emacs-skipped-packet            | X     |       |             |        |
+|debug-return                    | X     |       |             |  X     |
+|ed                              | X     |       |             |  X     |
+|eval                            | X     |       |             |  X     |
+|eval-no-wait                    | X     |       |             |  X     |
+|indentation-update              | X     |       |             |  X     |
+|inspect                         | X     |       |             |  X     |
+|invalid-rpc                     | X     |       |             |  X     |
+|new-features                    | X     |       |             |  X     |
+|new-package                     |       | X     |             |  X     |
+|open-dedicated-output-stream    |       | X     |             |  X     |
+|ping                            | X     |       |             |  X     |
+|presentation-start              |       |       | X           |  X     |
+|presentation-end                |       |       | X           |  X     |
+|reader-error                    | X     |       |             |  X     |
+|read-aborted                    |       | X     |             |  X     |
+|read-from-minibuffer            | X     |       |             |  X     |
+|read-string                     |       | X     |             |  X     |
+|return                          | X     |       |             |  X     |
+|test-delay                      | X     |       |             |  X     |
+|write-string                    |       | X     |             |  X     |
+|y-or-n-p                        | X     |       |             |  X     |
 
 ### Swank Side
 
