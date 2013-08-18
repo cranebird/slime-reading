@@ -18,6 +18,7 @@
 (use util.match)
 (use srfi-13)
 (use srfi-19)
+(use gauche.sequence)
 (use gauche.uvector)
 (use gauche.vport)
 (use gauche.parameter)
@@ -200,8 +201,8 @@
     ;; FIXME introduce user environment
     ;; FIXME user input
     (let1 result ((evaluator conn) form (interaction-environment))
-      (log-format "eval-for-emacs form: ~a~%" form)
-      (log-format "eval-for-emacs result: ~a~%" result)
+      (log-format "eval-for-emacs form: ~s~%" form)
+      (log-format "eval-for-emacs result: ~s~%" result)
       result)))
 
 ;; Send EVENT to Emacs.
@@ -213,6 +214,9 @@
 ;; A DEFINE for functions that Emacs can call by RPC.
 (define-macro (defslimefun name params :rest bodys)
   `(define (,name ,@params) ,@bodys))
+
+(defslimefun ping (tag)
+  tag)
 
 ;; TODO
 (defslimefun swank:connection-info ()
@@ -248,11 +252,126 @@
         `(:values . ,(map write-to-string/ss result))))))
 
 ;; TODO
-(defslimefun swank:autodoc (raw-form
-                            :key 
-                            (print-right-margin #f)
-                            (print-lines #f))
-  '("" nil))
+;; Return a list of two elements. 
+;; First, a string representing the arglist for the deepest subform in
+;; RAW-FORM that does have an arglist. The highlighted parameter is
+;; wrapped in ===> X <===.
+;; Second, a boolean value telling whether the returned string can be cached.
+(defslimefun swank:autodoc (raw-form :key 
+                                     (print-right-margin #f)
+                                     (print-lines #f))
+  (log-format ";; raw-form:~a~%" raw-form)
+  (cond ((elisp-false? (cadr raw-form))
+         (list "" nil))
+        ((find-arglist (parse-raw-form raw-form))
+         => (lambda (arglist)
+              (list (format #f "~a" (emphasis (car arglist)
+                                              (cadr arglist))) t)))
+        (else (list "" nil))))
+
+;; autodoc util from swank-gauche.scm
+(define (1+ n) (+ n 1))
+(define (emphasis lis num)
+  (cond ((null? lis) '())
+	((eq? (car lis) '&rest) '(&rest ===> rest <===))
+	((eq? (car lis) '...)   '(===> ... <===))
+	((eq? (car lis) '&optional)
+	 ;; skip optional-parameter indicator 
+	 (cons '&optional (emphasis (cdr lis) num)))
+	((<= num 0) `(===> ,(car lis) <=== ,@(cdr lis)))
+	(else
+	 (cons (car lis) (emphasis (cdr lis) (- num 1))))))
+
+(define *operator-args* '())
+
+(define (get-func-args op-sym a)
+  (cond
+   ((number? a) 
+    (cons op-sym (map (lambda (i) (string->symbol #`"arg,i")) (iota a))))
+   ((arity-at-least? a)
+    (cons op-sym
+	  (let loop ((i 0))
+	    (if (>= i (arity-at-least-value a))
+		(list '&rest 'rest)
+		(cons (string->symbol #`"arg,i") (loop (1+ i)))))))))
+
+(define (lookup-operator-args sym env)
+  (let1 args (filter (lambda (form) (eq? sym (car form))) *operator-args*)
+    (if (not (null? args)) args
+	(and-let* ((val (global-variable-ref env sym #f))
+		   (not (procedure? val))
+		   (a (arity val)))
+	  (list (get-func-args sym (if (pair? a) (car a) a)))))))
+
+(define *buffer-package* (make-parameter 'user))
+(define (user-env name)
+  (or (find-module (module-symbol name))
+      (error "Could not find user environment." name)))
+
+(define (module-symbol package)
+  (if (or (elisp-false? package) (not package))
+      (*buffer-package*)
+      (if (symbol? package)
+          package
+          (string->symbol package))))
+
+(define (elisp-false? o) (member o '(nil ())))
+
+(define +cursor-marker+ 'swank::%cursor-marker%)
+
+(define-constant +special-symbols+ (list +cursor-marker+ 'nil 'quasiquote 'quote))
+
+(define (parse-raw-form raw-form)
+  (define  (read-conversatively element)
+    (let ((sym (string->symbol element)))
+      (if (symbol-bound? sym)
+	  sym
+	  element)))
+
+  (map (lambda (element)
+	 (cond ((string? element)
+                (read-conversatively element))
+	       ((list? element)
+                (parse-raw-form element))
+	       ((symbol? element)
+                (if (memq element +special-symbols+)
+                    element
+                    (error "unknown symbol" element)))
+	       (else
+		(error "unknown type" element))))
+       raw-form))
+
+(define (find-arglist form)
+  (call/cc (lambda (return)
+	     (for-each (lambda (candidate)
+			 (cond ((symbol? (car candidate))
+				(if-let1 found-args (lookup-operator-args (car candidate) (user-env #f))
+                                  (return (list (car found-args) (cadr candidate)))))
+			       (else #f)))
+		       (reverse (arglist-candidates form)))
+	     #f)))
+
+(define (arglist-candidates form)
+  (cond ((list? form)
+	 (if-let1 candidate (operator-and-makerindex form)
+           (cons candidate (arglist-candidates (ref form (cadr candidate))))
+           '()))
+	(else '())))
+
+(define (operator-and-makerindex sexp)
+  (receive (index elem) (contain-marker? sexp)
+    (if index
+        (list (car sexp) index)
+        #f)))
+
+(define (contain-marker? sexp)
+  (find-with-index (lambda (elem)
+		     (if (list? elem)
+			 (contain-marker? elem)
+			 (or (equal? "" elem)
+			     (eq? +cursor-marker+ elem)))) sexp))
+
+;;
 
 (defslimefun quit-lisp () (exit))
 
