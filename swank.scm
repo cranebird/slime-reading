@@ -185,16 +185,6 @@
          (flush emacs-output)
          (close-output-port emacs-output))))))
 
-;; (define call-with-emacs-output-stream
-;;   (lambda (output proc)
-;;     (let1 emacs-output (make-emacs-output-stream output)
-;;       (dynamic-wind
-;;         (lambda () #f)
-;;         (lambda () (proc emacs-output))
-;;         (lambda ()
-;;           (flush emacs-output)
-;;           (close-output-port emacs-output))))))
-
 ;; make evaluator
 (define evaluator
   (lambda (conn)
@@ -248,11 +238,11 @@
   (list "user" "user"))
 
 (defslimefun swank:listener-eval (string)
-  ;; FIXME use eval-repl and multiple-value
-  (log-format "listener-eval: ~a~%" string)
+  ;; FIXME use eval-repl
+  (log-format "listener-eval string: ~s~%" string)
   (let1 sexp (read-from-string string)
     ;; FIXME read error check
-    (log-format "listener-eval: sexp ~a~%" sexp)
+    (log-format "listener-eval sexp: ~s~%" sexp)
     (call-with-values (lambda () (eval sexp (interaction-environment)))
       (lambda result
         `(:values . ,(map write-to-string/ss result))))))
@@ -277,6 +267,20 @@
                               (date-minute d)
                               (date-second d)))))))
 
+;; error handling test
+;; (define error-test
+;;   (lambda ()
+;;     ;;
+;;     (unwind-protect
+;;      (begin
+;;        (format #t "after unwind~%")
+;;        (raise (condition
+;;                (<error> (message "An error occurred."))))
+;;        'foobar)
+;;      (begin
+;;        (format #t "cleaning~%")
+;;        ))))
+
 ;;;; main
 (define swank-server
   (lambda (port)
@@ -293,16 +297,6 @@
              (dispatch-event conn event)
              (loop)))))
      (log-format "exit loop~%"))))
-
-;; (define (swank-server port)
-;;   (log-default-drain (make-swank-drain))
-;;   (with-emacs-connection port conn
-;;     (let loop ()
-;;       (let1 event (decode-message (input-of conn))
-;;         (log-format "event: ~a~%" event)
-;;          ;; TODO use event queue
-;;         (dispatch-event conn event)
-;;         (loop)))))
 
 ;; see lib/gauche/interactive.scm
 ;; TODO fix call with-emacs-connection
