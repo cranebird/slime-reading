@@ -298,6 +298,7 @@ swank 側の処理は大きく以下の 3 パターンに分けられる。
 `slime-dispatch-event` 関数は `slime-event-hooks` フックによって拡張される。特に contib/slime-repl.el ファイルで
 repl 周りのイベント処理が行なわれている点に注意。
 
+
 |event                           | slime |repl   |presentation |  swank |
 |--------------------------------|-------|---------------------|--------|
 |background-message              | X     |       |             |  X     |
