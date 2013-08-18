@@ -299,7 +299,7 @@ swank 側の処理は大きく以下の 3 パターンに分けられる。
 repl 周りのイベント処理が行なわれている点に注意。
 
 
-| event                           | slime |repl   |presentation |  swank |
+| event                           | slime | repl  |presentation | swank  |
 | --------------------------------|-------|---------------------|--------|
 | background-message              | X     |       |             |  X     |
 | channel-send                    | X     |       |             |  X     |
