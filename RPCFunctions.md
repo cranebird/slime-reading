@@ -1,4 +1,4 @@
-# `defslimefun` マクロで定義される関数一覧。
+## `defslimefun` マクロで定義される全関数
 
 | Name | Arglist |
 | ---- | ---- |
