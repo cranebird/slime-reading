@@ -2,14 +2,20 @@
 
 ### PING (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | PING | (TAG) |
 
 ### CONNECTION-INFO (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | CONNECTION-INFO | NIL |
 
 ### Evaluation (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | INTERACTIVE-EVAL | (STRING) |
 | INTERACTIVE-EVAL-REGION | (STRING) |
 | EVAL-AND-GRAB-OUTPUT | (STRING) |
@@ -19,6 +25,8 @@
 
 ## Edit (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | ED-IN-EMACS | (&OPTIONAL WHAT) |
 | INSPECT-IN-EMACS | (WHAT &KEY WAIT) |
 | VALUE-FOR-EDITING | (FORM) |
@@ -26,17 +34,23 @@
 
 ### COMPLETION (swank-c-p-c.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | COMPLETIONS | (STRING DEFAULT-PACKAGE-NAME) |
 | COMPLETIONS-FOR-CHARACTER | (PREFIX) |
 
 ### ARGLIST (swank-arglist.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | AUTODOC | (RAW-FORM &KEY PRINT-RIGHT-MARGIN) |
 | COMPLETE-FORM | (RAW-FORM) |
 | COMPLETIONS-FOR-KEYWORD | (KEYWORD-STRING RAW-FORM) |
 
 ### Debug (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | BACKTRACE | (START END) |
 | SLDB-ABORT | NIL |
 | SLDB-BREAK | (NAME) |
@@ -63,6 +77,8 @@
 
 ### Compilation Commands (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | COMPILE-FILE-FOR-EMACS | (FILENAME LOAD-P &REST OPTIONS) |
 | COMPILE-FILE-IF-NEEDED | (FILENAME LOADP) |
 | COMPILE-MULTIPLE-STRINGS-FOR-EMACS | (STRINGS POLICY) |
@@ -70,14 +86,20 @@
 
 ### Loading (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | LOAD-FILE | (FILENAME) |
 
 ### swank-require (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | SWANK-REQUIRE | (MODULES &OPTIONAL FILENAME) |
 
 ### Macroexpand (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | SWANK-MACROEXPAND | (STRING) |
 | SWANK-MACROEXPAND-1 | (STRING) |
 | SWANK-MACROEXPAND-ALL | (STRING) |
@@ -89,14 +111,20 @@
 
 # Simple Completion (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | SIMPLE-COMPLETIONS | (PREFIX PACKAGE) |
 
 # Simple arglist display (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | OPERATOR-ARGLIST | (NAME PACKAGE) |
 
 # Documentation (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | APROPOS-LIST-FOR-EMACS | (NAME &OPTIONAL EXTERNAL-ONLY CASE-SENSITIVE PACKAGE)|
 | DESCRIBE-FUNCTION | (NAME) |
 | DESCRIBE-INSPECTEE | NIL |
@@ -105,24 +133,34 @@
 
 # Package Commands (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | LIST-ALL-PACKAGE-NAMES | (&OPTIONAL NICKNAMES) |
 
 # Tracing (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | SWANK-TOGGLE-TRACE | (SPEC-STRING) |
 
 # Undefing (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | UNDEFINE-FUNCTION | (FNAME-STRING) |
 | UNINTERN-SYMBOL | (NAME PACKAGE) |
 
 # Profiling (swank.lisp)
 
+| Name | Arglist |
+| ---- | ---- |
 | TOGGLE-PROFILE-FDEFINITION | (FNAME-STRING) |
 | PROFILE-BY-SUBSTRING | (SUBSTRING PACKAGE) |
 
 # Source Locations
 
+| Name | Arglist |
+| ---- | ---- |
 | FIND-DEFINITION-FOR-THING | (THING) |
 | FIND-DEFINITIONS-FOR-EMACS | (NAME) |
 | FIND-SOURCE-LOCATION-FOR-EMACS | (SPEC) |
