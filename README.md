@@ -662,7 +662,13 @@ TODO
 
 # defslimefun で定義される function
 
--> RPCFunctions.md
+[RPC Functions](RPCFunctions.md)
+
+| function | 概要 |
+|----|----|----|
+| `connection-info` | key-value リストを返す。|
+
+
 
 ## `ping`
 
