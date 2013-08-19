@@ -662,7 +662,7 @@ TODO
 
 # defslimefun で定義される function
 
-[RPC Functions](RPCFunctions.md)
+[RPC Functions(定義順)](RPCFunctions.md)および[RPC Functions(アルファベット順)](RPCFunctionsAlphabet.md) 参照。
 
 | function | 概要 |
 |----|----|----|
