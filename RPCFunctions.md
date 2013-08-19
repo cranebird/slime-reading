@@ -116,3 +116,22 @@
 | CLEAR-REPL-VARIABLES | NIL |
 | REDIRECT-TRACE-OUTPUT | (TARGET) |
 
+### 生成方法
+
+swank.lisp ファイルの `defslimefun` マクロを修正し、(関数名 . 引数リスト)を取得る。
+
+    ;; swank.lisp 
+    (defvar *slimefun-list* nil)
+    (defmacro defslimefun (name arglist &body rest)
+      "A DEFUN for functions that Emacs can call by RPC."
+     `(progn
+        (push (cons ',name ',arglist) *slimefun-list*)
+        (defun ,name ,arglist ,@rest)
+        ;; see <http://www.franz.com/support/documentation/6.2/\
+        ;; doc/pages/variables/compiler/\
+        ;; s_cltl1-compile-file-toplevel-compatibility-p_s.htm>
+        (eval-when (:compile-toplevel :load-toplevel :execute)
+          (export ',name (symbol-package ',name)))))
+    ;;
+    (loop for (name . arglist) in (reverse *slimefun-list*)
+          do (format t "| ~s | ~s |~%" name arglist))
